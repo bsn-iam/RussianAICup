@@ -47,12 +47,15 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             }
 
             ReplaceUnitWithUpdate(world, UnitsMy);
-            //foreach (var unit in UnitsMy)
-            //{
-            //    if (unit.IsSelected)
-            //        Console.WriteLine($"Unit {unit.Id}. IsSelected = {unit.IsSelected}");
-            //}
+            foreach (var unit in UnitsMy)
+            {
+                if (unit.X < 0.1) throw new Exception("0 coordinate! Dead warrior!");
+            }
             ReplaceUnitWithUpdate(world, UnitsOpp);
+            foreach (var unit in UnitsOpp)
+            {
+                if (unit.X < 0.1) throw new Exception("0 coordinate! Dead enemy in the list.");
+            }
         }
 
         private void ReplaceUnitWithUpdate(World world, List<Vehicle> units)
@@ -63,11 +66,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
                     {
                         var newUnit = new Vehicle(unit, update);
                         units.Remove(unit);
-                        units.Add(newUnit);
-                       // if (newUnit.IsSelected)
-                       //     Console.WriteLine($"Unit {newUnit.Id} is updated. IsSelected = {newUnit.IsSelected}");
+                        if (update.Durability!=0) //Note: Dead or not visible units are removed from the list! 
+                            units.Add(newUnit);
+
+                        // TODO if (UnitAliveButNotVisible) units.Add(newUnit);
+                        // TODO For dead units position is 0, for for the hidden ones?
                     }
-       }
+        }
     }
 
 
