@@ -20,6 +20,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static void ActionSelectSquad(this Queue<IMoveAction> moveActions, int squadId) =>
             moveActions.Enqueue(new ActionSelectSquad(squadId));
 
+        public static void ActionSelectInRange(this Queue<IMoveAction> moveActions, Range range) =>
+            moveActions.Enqueue(new ActionSelectInRange(range));
+
 
 
         //Assignment
@@ -29,6 +32,25 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         //Movement
         public static void ActionMoveSelectionToPosition(this Queue<IMoveAction> moveActions, AbsolutePosition position) =>
             moveActions.Enqueue(new ActionMoveSelectionToPosition(position));
+    }
+
+    internal class ActionSelectInRange : IMoveAction
+    {
+        private Range range;
+
+        public ActionSelectInRange(Range range)
+        {
+            this.range = range;
+        }
+
+        public void Execute(Universe universe)
+        {
+            universe.Move.Action = ActionType.ClearAndSelect;
+            universe.Move.Right = range.XRight;
+            universe.Move.Left = range.XLeft;
+            universe.Move.Top = range.YTop;
+            universe.Move.Bottom = range.YBottom;
+        }
     }
 
     public class ActionSelectAll : IMoveAction

@@ -42,8 +42,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     
     public class AbsolutePosition
     {
-        public double X { get; set; }
-        public double Y { get; set; }
+        public double X { get; }
+        public double Y { get; }
         public AbsolutePosition(double x, double y)
         {
             X = x;
@@ -51,6 +51,29 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
     }
 
+    public class Range
+    {
+
+        public Range()
+        {
+            XLeft = 0;
+            XRight = 1024;
+            YTop = 0;
+            YBottom = 1024;
+        }
+        public Range(double xLeft, double xRight, double yTop, double yBottom)
+        {
+            XLeft = xLeft;
+            XRight = xRight;
+            YTop = yTop;
+            YBottom = yBottom;
+        }
+
+        public double XLeft { get; }
+        public double XRight { get; }
+        public double YTop { get; }
+        public double YBottom { get; }
+    }
 
 
 

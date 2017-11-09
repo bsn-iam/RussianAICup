@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 
 namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
@@ -47,7 +43,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public static AbsolutePosition GetSelectionCenter(this Universe universe)
         {
-
             var selectedUnits = new List<Vehicle>();
 
             foreach (var unit in universe.MyUnits)
@@ -66,14 +61,35 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public static AbsolutePosition GetUnitsCenter(this List<Vehicle> units)
         {
-            var xs = new List<double>();
-            var ys = new List<double>();
-            foreach (var unit in units)
+            if (units.Count == 1) return 
+                    new AbsolutePosition(units[0].X, units[0].Y);
+
+            Dictionary<long, double> distancesPerUnit = new Dictionary<long, double>();
+
+            //get sum of distance to friends
+            foreach (var u1 in units)
             {
-                xs.Add(unit.X);
-                ys.Add(unit.Y);
+                double u1Distance = 0;
+                foreach (var u2 in units)
+                    u1Distance += GetDistanceBetweenUnits(u1, u2);
+                distancesPerUnit.Add(u1.Id, u1Distance);
             }
-            return new AbsolutePosition(xs.Average(), ys.Average());
+
+            //get the ID of less distant.
+            var minDistance = Double.MaxValue;
+            long centerUnitId=0;
+            foreach (var pair in distancesPerUnit)
+            {
+                if (pair.Value > 0.01 && pair.Value < minDistance)
+                {
+                    minDistance = pair.Value;
+                    centerUnitId = pair.Key;
+                }
+            }
+
+            //return position of less distant unit
+            var centerUnit = units.First(u =>u.Id.Equals(centerUnitId));
+            return new AbsolutePosition(centerUnit.X, centerUnit.Y);
         }
 
         public static AbsolutePosition GetNearestPositionToTarget(this List<Vehicle> units, List<Vehicle> targetUnits)
@@ -107,6 +123,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 Console.WriteLine("Warning! Selection contains 0 units.");
 
             return counter;
+        }
+
+        public static Range GetRange(this AbsolutePosition position, double radius)
+        {
+            var XLeft = position.X - radius;
+            var XRight = position.X - radius;
+            var YTop = position.Y - radius;
+            var YBottom = position.Y - radius;
+
+            return new Range(XLeft, XRight, YTop, YBottom);
         }
 
     }

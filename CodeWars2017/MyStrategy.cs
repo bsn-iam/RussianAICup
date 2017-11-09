@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 using System.Linq;
-using System.Runtime.InteropServices;
+
 
 namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
     public sealed class MyStrategy : IStrategy
@@ -11,15 +11,19 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
         public List<Vehicle> UnitsOpp = new List<Vehicle>();
 
         public Universe Universe { get; set; }
+        public ActionHandler ActionHandler = new ActionHandler();
+        public SquadCalculator SquadCalculator = new SquadCalculator();
 
-        public MyActionHandler ActionHandler = new MyActionHandler();
 
         public void Move(Player me, World world, Game game, Move move)
         {
             UpdateUnitsStatus(world);
             Universe = new Universe(world, game, UnitsMy, UnitsOpp, move);
-           
-            ActionHandler.RunTick(Universe);
+
+            SquadCalculator.RunTick(Universe);
+
+            ActionHandler.RunTick(Universe, SquadCalculator.ActionList);
+            
         }
 
         private void UpdateUnitsStatus(World world)
