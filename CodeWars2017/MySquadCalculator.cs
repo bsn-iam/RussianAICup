@@ -10,7 +10,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public List<Squad> SquadList { get; internal set; } =new List<Squad>();
         public Queue<IMoveAction> ActionList { get; } = new Queue<IMoveAction>();
         public Universe Universe;
-        private const int ActionListLength = 20;
+        private const int ActionListLength = 6;
 
 
         internal void RunTick(Universe universe)
@@ -21,27 +21,28 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             foreach (var squad in SquadList)
                 squad.UpdateState(Universe);
 
-                GenerateActions();
+            GenerateActions();
         }
-
 
         private void GenerateActions()
         {
             if (ActionList.Count < ActionListLength)
-                foreach (var squad in SquadList)
+                foreach (var squad in SquadList.Where(s=>s.IsEnabled).Where(s=>!s.IsEmpty))
                 {
                     //check state and force, run actions
-                    if (squad.Units.Count != 0)
-                        squad.Attack(ActionList, Universe.MapCenter);
+                    squad.Attack(ActionList, Universe.MyUnits.GetNearestPositionToTarget(Universe.OppUnits.Where(u => u.Type == VehicleType.Tank).ToList()));
                 }
 
-            if (ActionList.Count < 6)
-            {
-                //ActionList.ActionSelectSquad((int)Squads.All);
-                ActionList.ActionSelectSquad((int)Squads.Helicopters);
-                ActionList.ActionMoveSelectionToPosition(Universe.MyUnits.GetNearestPositionToTarget(Universe.OppUnits.Where(u => u.Type == VehicleType.Arrv).ToList()));
-                return;
-            }
+            //if (ActionList.Count < 6)
+            //{
+            //    //ActionList.ActionSelectSquad((int)Squads.All);
+            //    ActionList.ActionSelectSquad((int)Squads.Helicopters);
+            //    ActionList.ActionMoveSelectionToPosition(Universe.MyUnits.GetNearestPositionToTarget(Universe.OppUnits.Where(u => u.Type == VehicleType.Arrv).ToList()));
+            //    return;
+            //}
+
+            if (Universe.World.TickIndex % 600  == 0)
+                SquadList.ForEach(s => Console.WriteLine(s.ToString()));
 
 
             //if (ActionList.Count < 6 && Universe.World.TickCount > 2000)
@@ -53,7 +54,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             //}
         }
 
-        private int getUniqueSquadId()
+
+        private int generateUniqueSquadId()
         {
             var newId=0;
             foreach (var squad in SquadList)
@@ -66,16 +68,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public void StartActionList(Universe universe)
         {
             //do not use Universe here. Link will be changed.
-            new Squad(ActionList, SquadList, (int)Squads.All, new Range());
-            new Squad(ActionList, SquadList, (int)Squads.Fighters, VehicleType.Fighter);
-            new Squad(ActionList, SquadList, (int)Squads.Helicopters, VehicleType.Helicopter);
-            new Squad(ActionList, SquadList, (int)Squads.Arrvs, VehicleType.Arrv);
-            new Squad(ActionList, SquadList, (int)Squads.Ifvs, VehicleType.Ifv);
-            new Squad(ActionList, SquadList, (int)Squads.Tanks, VehicleType.Tank);
+            //new Squad(ActionList, SquadList, (int)Squads.All, new Range());
 
+            ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Fighters, VehicleType.Fighter);
+            ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Arrvs, VehicleType.Arrv);
+            ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Ifvs, VehicleType.Ifv);
+            ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Helicopters, VehicleType.Helicopter);
+            ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Tanks, VehicleType.Tank);
 
+            ActionList.ActionCombineSquads(SquadList, (int) Squads.Tanks, (int) Squads.Fighters, generateUniqueSquadId());
 
-            //new Squad(ActionList, SquadList, getUniqueSquadId(), new Range());
+            //new Squad(ActionList, SquadList, generateUniqueSquadId(), new Range());
             //
             //ActionList.ActionSelectAll();
             //ActionList.ActionAssignSelectionToSquad((int)Squads.All);

@@ -7,14 +7,23 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 {
     public class Squad
     {
-        public double Dispersion { get; }
+        public double Dispersion => Units.GetUnitsDispersionValue();
+
         public int Id { get; internal set; } = 99999;
-        public List<Vehicle> Units { get; internal set; }
+
+        public List<Vehicle> Units { get; internal set; } = new List<Vehicle>();
+        public bool IsCreated { get; internal set; }
+        public bool IsEnabled { get; internal set; }
+        public bool IsEmpty { get; internal set; }
+
 
         public void UpdateState(Universe universe)
         {
             Units = universe.MyUnits.Where(u => u.Groups.Contains(Id)).ToList();
+            IsCreated = true;
+            IsEmpty = !Units.Any();
         }
+
 
         public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id, VehicleType type)
         {
@@ -22,7 +31,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             actions.ActionSelectVenicleType(type);
             actions.ActionAssignSelectionToSquad(id);
             squadList.Add(this);
+            IsCreated = false;
+            IsEnabled = true;
         }
+
         public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id, Range range)
         {
             //range=position.GetRange(radius)
@@ -30,6 +42,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             actions.ActionSelectInRange(range);
             actions.ActionAssignSelectionToSquad(id);
             squadList.Add(this);
+            IsCreated = false;
+            IsEnabled = true;
         }
 
         internal void Attack(Queue<IMoveAction> actions, AbsolutePosition position)
@@ -79,6 +93,15 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     force += unit.GroundDamage;
                 return force;
             }
+        }
+
+        public double AirEnergy => AirForce + AirDefence;
+        public double GroundEnergy => GroundForce + GroundDefence;
+
+
+        public override string ToString()
+        {
+            return $"Squad [{Id}], Amount [{Units.Count}], Dispersion [{Dispersion:f2}], AirEnergy [{AirEnergy}], GroundEnergy [{GroundEnergy}].";
         }
     }
 }

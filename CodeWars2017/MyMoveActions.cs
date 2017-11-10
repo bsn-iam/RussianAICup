@@ -29,14 +29,34 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static void ActionAssignSelectionToSquad(this Queue<IMoveAction> moveActions, int squadId) =>
             moveActions.Enqueue(new ActionAssignSelectionToSquad(squadId));
 
+        //Grupping
+        public static void ActionAddToSelectionSquad(this Queue<IMoveAction> moveActions, int squadId) =>
+            moveActions.Enqueue(new ActionAddToSelectionSquad(squadId));
+
         //Movement
         public static void ActionMoveSelectionToPosition(this Queue<IMoveAction> moveActions, AbsolutePosition position) =>
             moveActions.Enqueue(new ActionMoveSelectionToPosition(position));
     }
 
+    internal class ActionAddToSelectionSquad : IMoveAction
+    {
+        private readonly int squadId;
+
+        public ActionAddToSelectionSquad(int squadId)
+        {
+            this.squadId = squadId;
+        }
+
+        public void Execute(Universe universe)
+        {
+            universe.Move.Action = ActionType.AddToSelection;
+            universe.Move.Group = squadId;
+        }
+    }
+
     internal class ActionSelectInRange : IMoveAction
     {
-        private Range range;
+        private readonly Range range;
 
         public ActionSelectInRange(Range range)
         {
