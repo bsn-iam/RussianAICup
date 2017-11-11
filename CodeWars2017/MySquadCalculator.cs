@@ -13,6 +13,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public Queue<IMoveAction> ActionList { get; } = new Queue<IMoveAction>();
         public Universe Universe;
         private const int ActionListLength = 6;
+        private const int MaxDispersionRelative = 2;
         private IdGenerator SquadIdGenerator;
 
 
@@ -52,23 +53,40 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void GenerateActions()
         {
-            if (ActionList.Count == 0 )
-                foreach (var squad in SquadList.Where(s=>s.IsEnabled).Where(s=>!s.IsEmpty))
-                {
-                    //check state and force, run actions
-                    //if (squad.Dispersion > 5000)
-                    //    ActionList.ActionMoveAndCombine(SquadList, );
-                    squad.Attack(ActionList, Universe.MyUnits.GetNearestPositionToTarget(Universe.OppUnits));
-                }
-
-
-            if (Universe.World.TickIndex % 600 == 0)
+#if DEBUG
+            if (Universe.World.TickIndex % 120 == 0)
             {
                 SquadList.Where(g => g.IsEnabled).ToList()
                     .Where(f => !f.IsEmpty).ToList()
                     .ForEach(s => Console.WriteLine(s.ToString()));
                 Console.WriteLine();
             }
+#endif
+
+            if (ActionList.Count == 0 )
+                foreach (var squad in SquadList.Where(s=>s.IsEnabled).Where(s=>!s.IsEmpty))
+                {
+
+                    if (squad.DispersionRelative > MaxDispersionRelative)
+                    {
+                        Console.WriteLine("We must Hive off! Squad Id " + squad.Id);
+                        continue;
+                    }
+
+                    foreach (var friendSquad in SquadList.Where(s =>!s.Id.Equals(squad.Id)))
+                    {
+                        var squadJoin=new Squad(squad, friendSquad);
+                        if (squadJoin.Dispersion < squad.Dispersion)
+                        {
+                            Console.WriteLine($"We can join! Squads Id {squad.Id} and {friendSquad.Id}");
+                        }
+                    }
+
+
+                    squad.Attack(ActionList, Universe.MyUnits.GetNearestPositionToTarget(Universe.OppUnits));
+                }
+
+
                 
 
             //if (ActionList.Count < 6 && Universe.World.TickCount > 2000)
@@ -90,8 +108,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Helicopters, VehicleType.Helicopter);
             ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Tanks, VehicleType.Tank);
 
-            ActionList.ActionMoveAndCombine(SquadList, (int)Squads.Helicopters, (int)Squads.Ifvs, SquadIdGenerator.New, DeferredActionList, Universe.World.TickIndex, 1500);
-            ActionList.ActionMoveAndCombine(SquadList, (int)Squads.Fighters, (int)Squads.Tanks, SquadIdGenerator.New, DeferredActionList, Universe.World.TickIndex, 1500);
+
+            //ActionList.ActionMoveAndCombine(SquadList, (int)Squads.Helicopters, (int)Squads.Ifvs, SquadIdGenerator.New, DeferredActionList, Universe.World.TickIndex, 1500);
+            //ActionList.ActionMoveAndCombine(SquadList, (int)Squads.Fighters, (int)Squads.Tanks, SquadIdGenerator.New, DeferredActionList, Universe.World.TickIndex, 1500);
 
         }
 

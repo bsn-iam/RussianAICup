@@ -95,7 +95,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 double u1Distance = 0;
                 foreach (var u2 in units)
                     u1Distance += GetDistanceBetweenUnits(u1, u2);
-                dispersionPerUnit.Add(u1.Id, u1Distance);
+                dispersionPerUnit.Add(u1.Id, u1Distance / units.Count);
             }
             //greater value - more distant unit
             return dispersionPerUnit;

@@ -15,12 +15,28 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public bool IsCreated { get; internal set; }
         public bool IsEnabled { get; internal set; }
         public bool IsEmpty { get; internal set; }
+        public bool IsAbstract { get; }
 
+        public double StartDispersion { get; internal set; } = Double.MaxValue;
+        public double StartGroundEnergy { get; internal set; } = 0;
+        public double StartAirEnergy { get; internal set; } = 0;
 
         public void UpdateState(Universe universe)
         {
             Units = universe.MyUnits.Where(u => u.Groups.Contains(Id)).ToList();
-            IsCreated = true;
+
+            if (!IsCreated)
+            {
+                IsCreated = Units.Any();
+                if (IsCreated)
+                {
+                    StartDispersion = Dispersion;
+                    StartAirEnergy = AirEnergy;
+                    StartGroundEnergy = GroundEnergy;
+                }
+            }
+                
+
             IsEmpty = !Units.Any();
 #if DEBUG
             //if (!this.IsEmpty && this.IsEnabled)
@@ -59,6 +75,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             IsEnabled = true;
         }
 
+        public Squad(List<Vehicle> units, bool isAbstract = true)
+        {
+            if (!isAbstract)
+                throw new NotImplementedException();
+
+            Id = new Random().Next(0, 100);
+            Units = units;
+            IsCreated = true;
+            IsEnabled = false;
+            IsAbstract = isAbstract;
+        }
+        public Squad(Squad squadAlfa, Squad squadDelta, bool isAbstract = true)
+        {
+            if (!isAbstract)
+                throw new NotImplementedException();
+
+            Id = new Random().Next(0, 100);
+
+            squadAlfa.Units.ForEach(u => Units.Add(u));
+            squadDelta.Units.ForEach(u => Units.Add(u));
+
+            IsCreated = true;
+            IsEnabled = false;
+            IsAbstract = isAbstract;
+        }
+
         internal void Attack(Queue<IMoveAction> actions, AbsolutePosition position)
         {
             actions.ActionSelectSquad(Id);
@@ -76,7 +118,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return speed;
             }
         }
-        public double AirDefence
+
+        private double AirDefence
         {
             get
             {
@@ -86,7 +129,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return force;
             }
         }
-        public double GroundDefence
+        private double GroundDefence
         {
             get
             {
@@ -97,7 +140,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
-        public double AirForce
+        private double AirForce
         {
             get
             {
@@ -107,8 +150,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return force;
             }
         }
-
-        public double GroundForce
+       private double GroundForce
         {
             get
             {
@@ -119,12 +161,18 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
-        public double AirEnergy => AirForce + AirDefence;
-        public double GroundEnergy => GroundForce + GroundDefence;
+        public double AirEnergy => (AirForce + AirDefence) / Dispersion;
+        public double AirEnergyRelative => AirEnergy / StartAirEnergy;
+        public double GroundEnergyRelative => GroundEnergy / StartGroundEnergy;
+        public double DispersionRelative => Dispersion / StartDispersion;
+        public double GroundEnergy => (GroundForce + GroundDefence) / Dispersion;
 
         public override string ToString()
         {
-            return $"Squad [{Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], Dispersion [{Dispersion:f2}], AirEnergy [{AirEnergy}], GroundEnergy [{GroundEnergy}]";
+            return $"Squad [{Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], " +
+                   $"Dispersion [{Dispersion:f2}, {DispersionRelative:f2}], " +
+                   $"AirEnergy [{AirEnergy:f2}, {AirEnergyRelative:f2}], " +
+                   $"GroundEnergy [{GroundEnergy:f2}, {GroundEnergyRelative:f2}]";
         }
 
         public void Enable() => IsEnabled = true;
