@@ -89,7 +89,6 @@
     <Compile Include="Model\World.cs" />
     <Compile Include="IStrategy.cs" />
     <Compile Include="MyActionHandler.cs" />
-    <Compile Include="MyConstants.cs" />
     <Compile Include="MyExtensions.cs" />
     <Compile Include="MyMoveActions.cs" />
     <Compile Include="MyObjects.cs" />

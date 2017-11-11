@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
@@ -8,42 +9,67 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     public class SquadCalculator
     {
         public List<Squad> SquadList { get; internal set; } =new List<Squad>();
+        public List<DeferredAction> DeferredActionList { get; } = new List<DeferredAction>();
         public Queue<IMoveAction> ActionList { get; } = new Queue<IMoveAction>();
         public Universe Universe;
         private const int ActionListLength = 6;
+        private IdGenerator SquadIdGenerator;
 
 
         internal void RunTick(Universe universe)
         {
             Universe = universe;
-            if (universe.World.TickIndex == 0) StartActionList(Universe);
+
+            if (universe.World.TickIndex == 0)
+                StartActionList(Universe);
 
             foreach (var squad in SquadList)
                 squad.UpdateState(Universe);
 
+            CheckDeferredActionList();
+
+#if DEBUG
+            if (ActionList.Count > 10)
+                Console.WriteLine($"Action list already contains {ActionList.Count} actions.");
+#endif
+
             GenerateActions();
+        }
+
+        private void CheckDeferredActionList()
+        {
+            var listToRemove = new List<DeferredAction>();
+            foreach (var action in DeferredActionList)
+            {
+                if (action.RequestedExecutionTick >= Universe.World.TickIndex)
+                {
+                    ActionList.Enqueue(action.Action);
+                    listToRemove.Add(action);
+                }
+            }
+            listToRemove.ForEach(a => DeferredActionList.Remove(a));
         }
 
         private void GenerateActions()
         {
-            if (ActionList.Count < ActionListLength)
+            if (ActionList.Count == 0 )
                 foreach (var squad in SquadList.Where(s=>s.IsEnabled).Where(s=>!s.IsEmpty))
                 {
                     //check state and force, run actions
-                    squad.Attack(ActionList, Universe.MyUnits.GetNearestPositionToTarget(Universe.OppUnits.Where(u => u.Type == VehicleType.Tank).ToList()));
+                    //if (squad.Dispersion > 5000)
+                    //    ActionList.ActionMoveAndCombine(SquadList, );
+                    squad.Attack(ActionList, Universe.MyUnits.GetNearestPositionToTarget(Universe.OppUnits));
                 }
 
-            //if (ActionList.Count < 6)
-            //{
-            //    //ActionList.ActionSelectSquad((int)Squads.All);
-            //    ActionList.ActionSelectSquad((int)Squads.Helicopters);
-            //    ActionList.ActionMoveSelectionToPosition(Universe.MyUnits.GetNearestPositionToTarget(Universe.OppUnits.Where(u => u.Type == VehicleType.Arrv).ToList()));
-            //    return;
-            //}
 
-            if (Universe.World.TickIndex % 600  == 0)
-                SquadList.ForEach(s => Console.WriteLine(s.ToString()));
-
+            if (Universe.World.TickIndex % 600 == 0)
+            {
+                SquadList.Where(g => g.IsEnabled).ToList()
+                    .Where(f => !f.IsEmpty).ToList()
+                    .ForEach(s => Console.WriteLine(s.ToString()));
+                Console.WriteLine();
+            }
+                
 
             //if (ActionList.Count < 6 && Universe.World.TickCount > 2000)
             //{
@@ -54,21 +80,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             //}
         }
 
-
-        private int generateUniqueSquadId()
+        public void StartActionList(Universe universe)  // Do not use Reference Types from Universe here! Links will be changed.
         {
-            var newId=0;
-            foreach (var squad in SquadList)
-                if (squad.Id >= newId)
-                    newId = squad.Id + 1;
-
-            return newId;
-        }
-
-        public void StartActionList(Universe universe)
-        {
-            //do not use Universe here. Link will be changed.
-            //new Squad(ActionList, SquadList, (int)Squads.All, new Range());
+            SquadIdGenerator = new IdGenerator(10, universe.Game.MaxUnitGroup);
 
             ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Fighters, VehicleType.Fighter);
             ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Arrvs, VehicleType.Arrv);
@@ -76,23 +90,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Helicopters, VehicleType.Helicopter);
             ActionList.ActionCreateNewSquad(SquadList, (int)Squads.Tanks, VehicleType.Tank);
 
-            ActionList.ActionCombineSquads(SquadList, (int) Squads.Tanks, (int) Squads.Fighters, generateUniqueSquadId());
-
-            //new Squad(ActionList, SquadList, generateUniqueSquadId(), new Range());
-            //
-            //ActionList.ActionSelectAll();
-            //ActionList.ActionAssignSelectionToSquad((int)Squads.All);
-            ////ActionList.ActionMoveSelectionToPosition(Universe.MapCenter);
-            //
-            //ActionList.ActionSelectVenicleType(VehicleType.Fighter);
-            //ActionList.ActionAssignSelectionToSquad((int)Squads.Fighters);
-            //
-            //ActionList.ActionSelectVenicleType(VehicleType.Helicopter);
-            //ActionList.ActionAssignSelectionToSquad((int)Squads.Helicopters);
-            ////ActionList.ActionMoveSelectionToPosition(Universe.MapConerRightUp);
-            //
-            //ActionList.ActionSelectAll();
+            ActionList.ActionMoveAndCombine(SquadList, (int)Squads.Helicopters, (int)Squads.Ifvs, SquadIdGenerator.New, DeferredActionList, Universe.World.TickIndex, 1500);
+            ActionList.ActionMoveAndCombine(SquadList, (int)Squads.Fighters, (int)Squads.Tanks, SquadIdGenerator.New, DeferredActionList, Universe.World.TickIndex, 1500);
 
         }
+
+
     }
+
+
 }

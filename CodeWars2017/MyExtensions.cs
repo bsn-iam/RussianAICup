@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
@@ -26,8 +27,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var squadUnits = new List<Vehicle>();
 
             foreach (var unit in universe.MyUnits)
-                if (unit.Groups.ToList().All(g => g.Equals(squad)))
+            {
+                var groups = unit.Groups.ToList();
+                if (groups.Contains(squad))
                     squadUnits.Add(unit);
+            }
+
             return squadUnits;
         }
 
@@ -43,11 +48,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public static AbsolutePosition GetSelectionCenter(this Universe universe)
         {
-            var selectedUnits = new List<Vehicle>();
-
-            foreach (var unit in universe.MyUnits)
-                if (unit.IsSelected)
-                    selectedUnits.Add(unit);
+            var selectedUnits = GetSelectedUnits(universe);
             //Console.WriteLine($"Moving {squadUnits.Count} units");
 
             if (selectedUnits.Count == 0)
@@ -57,6 +58,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
 
             return selectedUnits.GetUnitsCenter();
+        }
+
+        public static List<Vehicle> GetSelectedUnits(this Universe universe)
+        {
+            var selectedUnits = new List<Vehicle>();
+
+            foreach (var unit in universe.MyUnits)
+                if (unit.IsSelected)
+                    selectedUnits.Add(unit);
+            return selectedUnits;
         }
 
         public static double GetUnitsDispersionValue(this List<Vehicle> units)
@@ -157,42 +168,72 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return new Range(XLeft, XRight, YTop, YBottom);
         }
 
-        public static Squad Enable(this Squad squad)
+        public static double GetSpeedForSelection(this Universe universe)
         {
-            squad.IsEnabled = true;
-            return squad;
-        } 
+            var speed = double.MaxValue;
+            var units = universe.MyUnits;
+            foreach (var unit in units)
+                if (speed > unit.MaxSpeed)
+                    speed = unit.MaxSpeed;
 
-        public static Squad Disable(this Squad squad)
-        {
-            squad.IsEnabled = false;
-            return squad;
+            return speed;
         }
 
 
         //Action extensions
 
-        public static int ActionCombineSquads(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
-            int newSquadId) => actions.ActionCombineSquads(squadList.GetSquadById(squadAlfaId), squadList.GetSquadById(squadDeltaId), newSquadId);
 
         public static Squad GetSquadById(this List<Squad>squadList, int squadId) => 
             squadList.FirstOrDefault(s => s.Id.Equals(squadId));
 
-        public static Squad ActionCreateNewSquad(this Queue<IMoveAction> actions, List<Squad> squadList, int newSquadId, VehicleType type) => 
+        public static Squad ActionCreateNewSquad(this Queue<IMoveAction> actions, List<Squad> squadList, int newSquadId, VehicleType type) =>
             new Squad(actions, squadList, newSquadId, type);
 
-        public static int ActionCombineSquads(this Queue<IMoveAction> actions, Squad squadAlfa, Squad squadDelta, int newSquadId)
+        public static Squad ActionCreateNewSquadAlreadySelected(this Queue<IMoveAction> actions, List<Squad> squadList, int newSquadId) =>
+            new Squad(actions, squadList, newSquadId);
+
+
+        public static void ActionMoveAndCombine(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
+            int newSquadId, List<DeferredAction> deferredActionsList, int tickIndex, int duration)
         {
-            actions.ActionSelectSquad(squadAlfa.Id);
-            actions.ActionAddToSelectionSquad(squadDelta.Id);
-            actions.ActionAssignSelectionToSquad(newSquadId);
+            actions.ActionMoveToOnePoint(squadList, squadAlfaId, squadDeltaId);
 
-            squadAlfa.Disable();
-            squadDelta.Disable();
+            var deferredActions = new Queue<IMoveAction>();
+            deferredActions.ActionCombineSquads(squadList, squadAlfaId, squadDeltaId, newSquadId);
+            
+            // TODO if queue is log, there is not time for movement, planned combining time is behind.
+            foreach (var action in deferredActions) 
+            {
+                //TODO impossible to set exact required time for deferred action
+                //deferredActionsList.Add(new DeferredAction(action, tickIndex + squadList.GetPeriodPerMeeting(squadAlfaId, squadDeltaId)));
+                deferredActionsList.Add(new DeferredAction(action, tickIndex + duration));
+            }
+        }
 
-            return newSquadId;
+        //SquadList extensions
+
+        public static int GetPeriodPerMeeting(this List<Squad> squadList, int squadAlfaId, int squadDeltaId)
+        {
+            var meetingPoint = squadList.GetMeetingPoint(squadAlfaId, squadDeltaId);
+            var squadAlfa = squadList.GetSquadById(squadAlfaId);
+            var distance = meetingPoint.GetDistanceToPoint(squadAlfa.Units.GetUnitsCenter());
+            return (int)Math.Round(distance / squadAlfa.CruisingSpeed);
         }
 
 
+        public static AbsolutePosition GetMeetingPoint(this List<Squad> squadList, int squadAlfaId, int squadDeltaId)
+        {
+            var squadAlfa = squadList.GetSquadById(squadAlfaId);
+            var squadAlfaPosition = squadAlfa.Units.GetUnitsCenter();
+
+            var squadDelta = squadList.GetSquadById(squadDeltaId);
+            var squadDeltaPosition = squadDelta.Units.GetUnitsCenter();
+
+            var dX = squadDeltaPosition.X - squadAlfaPosition.X;
+            var dY = squadDeltaPosition.Y - squadAlfaPosition.Y;
+            var speedKoeff = squadAlfa.CruisingSpeed / squadDelta.CruisingSpeed;
+
+            return new AbsolutePosition(squadAlfaPosition.X + dX * speedKoeff, squadAlfaPosition.Y + dY * speedKoeff);
+        }
     }
 }

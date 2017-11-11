@@ -9,19 +9,22 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 {
     public class ActionHandler
     {
-        //public Queue<IMoveAction> MoveActions = new Queue<IMoveAction>();
         public Universe Universe { get; set; }
-        //public List<Squad> SquadState { get; set; }
 
         internal void RunTick(Universe universe, Queue<IMoveAction> actionList)
         {
             Universe = universe;
-            //SquadState = squadState;
 
             if (actionList.Count > 0 && CanMove(universe.World.GetMyPlayer()))
             {
                 var actionNow = actionList.Dequeue();
+
                 actionNow.Execute(universe);
+#if DEBUG
+                Console.WriteLine($"{Universe.World.TickIndex}. Action [{universe.Move.Action}] activated.");
+                if (!universe.Move.Action.Equals(ActionType.ClearAndSelect))
+                    Console.WriteLine($"Selection is {universe.GetSelectedUnits().Count} units.");
+#endif
                 return;
             }
             Universe.Move.Action = ActionType.None;

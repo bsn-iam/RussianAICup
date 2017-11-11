@@ -9,7 +9,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     {
         public double Dispersion => Units.GetUnitsDispersionValue();
 
-        public int Id { get; internal set; } = 99999;
+        public int Id { get; }
 
         public List<Vehicle> Units { get; internal set; } = new List<Vehicle>();
         public bool IsCreated { get; internal set; }
@@ -22,6 +22,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             Units = universe.MyUnits.Where(u => u.Groups.Contains(Id)).ToList();
             IsCreated = true;
             IsEmpty = !Units.Any();
+#if DEBUG
+            //if (!this.IsEmpty && this.IsEnabled)
+            //Console.WriteLine("Updating " + this);
+#endif
         }
 
 
@@ -34,6 +38,15 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             IsCreated = false;
             IsEnabled = true;
         }
+        public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id)
+        {
+            Id = id;
+            actions.ActionAssignSelectionToSquad(id);
+            squadList.Add(this);
+            IsCreated = false;
+            IsEnabled = true;
+        }
+
 
         public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id, Range range)
         {
@@ -52,6 +65,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             actions.ActionMoveSelectionToPosition(position);
         }
 
+        public double CruisingSpeed
+        {
+            get
+            {
+                double speed = double.MaxValue;
+                foreach (var unit in Units)
+                    if (speed > unit.MaxSpeed)
+                    speed =unit.MaxSpeed;
+                return speed;
+            }
+        }
         public double AirDefence
         {
             get
@@ -98,10 +122,15 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public double AirEnergy => AirForce + AirDefence;
         public double GroundEnergy => GroundForce + GroundDefence;
 
-
         public override string ToString()
         {
-            return $"Squad [{Id}], Amount [{Units.Count}], Dispersion [{Dispersion:f2}], AirEnergy [{AirEnergy}], GroundEnergy [{GroundEnergy}].";
+            return $"Squad [{Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], Dispersion [{Dispersion:f2}], AirEnergy [{AirEnergy}], GroundEnergy [{GroundEnergy}]";
         }
+
+        public void Enable() => IsEnabled = true;
+
+
+        public void Disable() => IsEnabled = false;
+
     }
 }

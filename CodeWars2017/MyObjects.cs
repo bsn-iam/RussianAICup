@@ -49,11 +49,18 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             X = x;
             Y = y;
         }
+
+        public double GetDistanceToPoint(AbsolutePosition position) => GetDistanceToPoint(position.X, position.Y);
+        public double GetDistanceToPoint(double x, double y)
+        {
+            var xRange = x - X;
+            var yRange = y - Y;
+            return Math.Sqrt(xRange * xRange + yRange * yRange);
+        }
     }
 
     public class Range
     {
-
         public Range()
         {
             XLeft = 0;
@@ -75,6 +82,47 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public double YBottom { get; }
     }
 
+    public class DeferredAction
+    {
+        public DeferredAction(IMoveAction action, int requestedExecutionTick)
+        {
+            Action = action;
+            RequestedExecutionTick = requestedExecutionTick;
+        }
 
+        public IMoveAction Action { get; }
+        public int RequestedExecutionTick { get; }
+    }
 
+    public class IdGenerator
+    {
+        public IdGenerator(int firstNumber, int maxNumber)
+        {
+            this.firstNumber = firstNumber;
+            this.maxNumber = maxNumber;
+        }
+
+        public List<int> squadNumbers { get; internal set; } = new List<int>();
+        private int firstNumber { get; }
+        private int maxNumber { get; }
+
+        public int New
+        {
+            get
+            {
+                var newId = firstNumber;
+                foreach (var number in squadNumbers)
+                    if (number >= newId)
+                        newId = number + 1;
+
+                if (newId > maxNumber)
+                    throw new Exception($"Group ID id outside the available range [{0}, {maxNumber}]");
+
+                squadNumbers.Add(newId);
+                return newId;
+            }
+        }
+
+        public void Remove(int id) => squadNumbers.Remove(id);
+    }
 }

@@ -10,7 +10,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
     public static class MoveList
     {
-        //selection
+        #region Selection
+
         public static void ActionSelectAll(this Queue<IMoveAction> moveActions) =>
             moveActions.Enqueue(new ActionSelectAll());
 
@@ -23,26 +24,80 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static void ActionSelectInRange(this Queue<IMoveAction> moveActions, Range range) =>
             moveActions.Enqueue(new ActionSelectInRange(range));
 
-
-
         //Assignment
         public static void ActionAssignSelectionToSquad(this Queue<IMoveAction> moveActions, int squadId) =>
             moveActions.Enqueue(new ActionAssignSelectionToSquad(squadId));
 
-        //Grupping
-        public static void ActionAddToSelectionSquad(this Queue<IMoveAction> moveActions, int squadId) =>
-            moveActions.Enqueue(new ActionAddToSelectionSquad(squadId));
+        #endregion
 
-        //Movement
+        #region Grouping
+        public static void ActionAddSquadToCurrentSelection(this Queue<IMoveAction> moveActions, int squadId) =>
+            moveActions.Enqueue(new ActionAddSquadToCurrentSelection(squadId));
+
+        public static void ActionCombineSquads(this Queue<IMoveAction> moveActions, List<Squad> squadList, Squad squadAlfa, Squad squadDelta, int newSquadId)
+        {
+            moveActions.ActionSelectSquad(squadAlfa.Id);
+            moveActions.ActionAddSquadToCurrentSelection(squadDelta.Id);
+            moveActions.ActionCreateNewSquadAlreadySelected(squadList, newSquadId);
+
+            squadAlfa.Disable();
+            squadDelta.Disable();
+        }
+
+        public static void ActionCombineSquads(this Queue<IMoveAction> moveActions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
+            int newSquadId) => moveActions.ActionCombineSquads(squadList, squadList.GetSquadById(squadAlfaId), squadList.GetSquadById(squadDeltaId), newSquadId);
+
+        #endregion
+
+        #region Movement
+
         public static void ActionMoveSelectionToPosition(this Queue<IMoveAction> moveActions, AbsolutePosition position) =>
             moveActions.Enqueue(new ActionMoveSelectionToPosition(position));
+
+
+        public static void ActionMoveToOnePoint(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId,
+            int squadDeltaId) =>
+            actions.Enqueue(new ActionMoveToOnePoint(actions, squadList, squadAlfaId, squadDeltaId));
+
+
+        #endregion
+
     }
 
-    internal class ActionAddToSelectionSquad : IMoveAction
+    internal class ActionMoveToOnePoint : IMoveAction
+    {
+        private int squadAlfaId;
+        private int squadDeltaId;
+        private List<Squad> squadList;
+        private Queue<IMoveAction> actions;
+
+        public ActionMoveToOnePoint(Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId)
+        {
+            this.squadList = squadList;
+            this.squadAlfaId = squadAlfaId;
+            this.squadDeltaId = squadDeltaId;
+            this.actions = actions;
+        }
+
+        public void Execute(Universe universe)
+        {
+            squadList.GetMeetingPoint(squadAlfaId, squadDeltaId);
+
+            var meetingPoint = squadList.GetMeetingPoint(squadAlfaId, squadDeltaId);
+
+            actions.ActionSelectSquad(squadAlfaId);
+            actions.ActionMoveSelectionToPosition(meetingPoint);
+
+            actions.ActionSelectSquad(squadDeltaId);
+            actions.ActionMoveSelectionToPosition(meetingPoint);
+        }
+    }
+
+    internal class ActionAddSquadToCurrentSelection : IMoveAction
     {
         private readonly int squadId;
 
-        public ActionAddToSelectionSquad(int squadId)
+        public ActionAddSquadToCurrentSelection(int squadId)
         {
             this.squadId = squadId;
         }
@@ -109,6 +164,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public void Execute(Universe universe)
         {
             universe.Move.Action = ActionType.Move;
+            universe.Move.MaxSpeed = universe.GetSpeedForSelection();
             var selectionCenter = universe.GetSelectionCenter();
             //Console.WriteLine($"Selection Center {selectionCenter.X}, {selectionCenter.Y}");
             universe.Move.X = position.X - selectionCenter.X;
@@ -127,7 +183,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public void Execute(Universe universe)
         {
-            universe.GetSquadUnits(squadId);
             if (universe.GetSquadUnits(squadId).Count == 0)
             {
                 Console.WriteLine($"Warning! Squad [{(Squads)squadId}] has no units.");
@@ -162,40 +217,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Bottom = universe.World.Height;
         }
     }
-
-    //if (world.TickIndex == 0)
-    //    ActionSelectAll();
-    //
-    //if (world.TickIndex == 1)
-    //    ActionAssignSelectionToSquad(Squads.All);
-    //
-    //if (world.TickIndex == 2)
-    //    ActionMoveSquadToPosition((int) Squads.All, MapConerLeftLower);
-    //
-    //if (world.TickIndex == 3)
-    //    ActionSelectVenicleType(VehicleType.Tank);
-    //
-    //if (world.TickIndex == 4)
-    //    ActionAssignSelectionToSquad(Squads.Tanks);
-    //
-    //if (world.TickIndex == 5)
-    //    ActionMoveSquadToPosition((int) Squads.Tanks, MapCenter);
-    //return;
-
-
-    //if (world.TickIndex == 0) {
-    //    move.Action = ActionType.ClearAndSelect;
-    //    move.Right = world.Width;
-    //    move.Bottom = world.Height;
-    //    return;
-    //}
-    //
-    //if (world.TickIndex == 1) {
-    //    move.Action = ActionType.Move;
-    //    move.X = world.Width / 2.0D;
-    //    move.Y = world.Height / 2.0D;
-    //    return;
-    //}
 
     public interface IMoveAction
     {
