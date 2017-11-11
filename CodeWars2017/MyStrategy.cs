@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 using System.Linq;
 
@@ -17,13 +18,28 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
 
         public void Move(Player me, World world, Game game, Move move)
         {
+#if DEBUG
+            RunTick(world, game, move);
+#else
+            try
+            {
+                RunTick(world, game, move);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
+#endif
+        }
+
+        private void RunTick(World world, Game game, Move move)
+        {
             UpdateUnitsStatus(world);
             Universe = new Universe(world, game, UnitsMy, UnitsOpp, move);
 
             SquadCalculator.RunTick(Universe);
 
             ActionHandler.RunTick(Universe, SquadCalculator.ActionList);
-            
         }
 
         private void UpdateUnitsStatus(World world)

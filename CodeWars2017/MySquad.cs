@@ -21,6 +21,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public double StartGroundEnergy { get; internal set; } = 0;
         public double StartAirEnergy { get; internal set; } = 0;
 
+        public int ScalingTimeDelay { get; internal set; }
+        public bool IsWaitingForScaling { get; internal set; }
+
         public void UpdateState(Universe universe)
         {
             Units = universe.MyUnits.Where(u => u.Groups.Contains(Id)).ToList();
@@ -33,9 +36,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     StartDispersion = Dispersion;
                     StartAirEnergy = AirEnergy;
                     StartGroundEnergy = GroundEnergy;
+                    ScalingTimeDelay = 0;
+                    IsWaitingForScaling = false;
                 }
             }
-                
+
+            if (ScalingTimeDelay > 0 && !IsWaitingForScaling )
+                 --ScalingTimeDelay;
 
             IsEmpty = !Units.Any();
 #if DEBUG
@@ -166,6 +173,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public double GroundEnergyRelative => GroundEnergy / StartGroundEnergy;
         public double DispersionRelative => Dispersion / StartDispersion;
         public double GroundEnergy => (GroundForce + GroundDefence) / Dispersion;
+
+
 
         public override string ToString()
         {

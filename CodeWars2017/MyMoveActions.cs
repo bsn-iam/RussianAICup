@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 
@@ -51,6 +52,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         #region Movement
 
+        //public static void ActionScaleSelectionToPosition(this Queue<IMoveAction> moveActions, double factor, AbsolutePosition position) =>
+        //    moveActions.Enqueue(new ActionScaleSelectedSquadToPosition(squad, factor, position));
+
         public static void ActionMoveSelectionToPosition(this Queue<IMoveAction> moveActions, AbsolutePosition position) =>
             moveActions.Enqueue(new ActionMoveSelectionToPosition(position));
 
@@ -62,6 +66,38 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         #endregion
 
+    }
+
+    internal class ActionScaleSelectedSquadToPosition : IMoveAction
+    {
+        private int duration;
+        private double factor;
+        private AbsolutePosition position;
+        private Squad squad;
+
+        public ActionScaleSelectedSquadToPosition(Squad squad, double factor, AbsolutePosition position, int duration)
+        {
+            this.squad = squad;
+            this.factor = factor;
+            this.position = position;
+            this.duration = duration;
+        }
+
+        public void Execute(Universe universe)
+        {
+//            if (squad.Id == 11)
+//                throw new Exception();
+            universe.Move.Action = ActionType.Scale;
+            universe.Move.X = position.X;
+            universe.Move.Y = position.Y;
+            universe.Move.Factor = factor;
+            squad.ScalingTimeDelay = duration;
+            squad.IsWaitingForScaling = false;
+
+#if DEBUG
+            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
+#endif
+        }
     }
 
     internal class ActionMoveToOnePoint : IMoveAction
@@ -106,6 +142,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             universe.Move.Action = ActionType.AddToSelection;
             universe.Move.Group = squadId;
+#if DEBUG
+            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
+#endif
         }
     }
 
@@ -125,6 +164,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Left = range.XLeft;
             universe.Move.Top = range.YTop;
             universe.Move.Bottom = range.YBottom;
+#if DEBUG
+            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
+#endif
         }
     }
 
@@ -135,6 +177,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Action = ActionType.ClearAndSelect;
             universe.Move.Right = universe.World.Width;
             universe.Move.Bottom = universe.World.Height;
+#if DEBUG
+            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
+#endif
         }
     }
 
@@ -150,6 +195,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             universe.Move.Action = ActionType.Assign;
             universe.Move.Group = squadId;
+#if DEBUG
+            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
+#endif
         }
     }
 
@@ -169,6 +217,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             //Console.WriteLine($"Selection Center {selectionCenter.X}, {selectionCenter.Y}");
             universe.Move.X = position.X - selectionCenter.X;
             universe.Move.Y = position.Y - selectionCenter.Y;
+#if DEBUG
+            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
+#endif
         }
     }
 
@@ -191,6 +242,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
             universe.Move.Action = ActionType.ClearAndSelect;
             universe.Move.Group = squadId;
+#if DEBUG
+            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
+#endif
         }
     }
 
@@ -215,6 +269,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.VehicleType = type;
             universe.Move.Right = universe.World.Width;
             universe.Move.Bottom = universe.World.Height;
+#if DEBUG
+            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
+#endif
         }
     }
 

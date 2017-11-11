@@ -95,7 +95,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 double u1Distance = 0;
                 foreach (var u2 in units)
                     u1Distance += GetDistanceBetweenUnits(u1, u2);
-                dispersionPerUnit.Add(u1.Id, u1Distance / units.Count);
+                if (!dispersionPerUnit.ContainsKey(u1.Id))
+                    dispersionPerUnit.Add(u1.Id, u1Distance / units.Count);
             }
             //greater value - more distant unit
             return dispersionPerUnit;
@@ -193,6 +194,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             new Squad(actions, squadList, newSquadId);
 
 
+        public static void ActionScaleSquadToPosition(this Queue<IMoveAction> actions, Squad squad, double factor, AbsolutePosition position, int duration)
+        {
+            actions.ActionSelectSquad(squad.Id);
+            actions.Enqueue(new ActionScaleSelectedSquadToPosition(squad, factor, position, duration));
+            squad.IsWaitingForScaling = true;
+        }
         public static void ActionMoveAndCombine(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
             int newSquadId, List<DeferredAction> deferredActionsList, int tickIndex, int duration)
         {
@@ -200,12 +207,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             var deferredActions = new Queue<IMoveAction>();
             deferredActions.ActionCombineSquads(squadList, squadAlfaId, squadDeltaId, newSquadId);
-            
+
             // TODO if queue is log, there is not time for movement, planned combining time is behind.
-            foreach (var action in deferredActions) 
+            foreach (var action in deferredActions)
             {
                 //TODO impossible to set exact required time for deferred action
-                //deferredActionsList.Add(new DeferredAction(action, tickIndex + squadList.GetPeriodPerMeeting(squadAlfaId, squadDeltaId)));
+                //deferredActionsList.Add(new DeferredAction(action, tickIndex + squadList.GetPeriodPerMeeting(squadId, squadDeltaId)));
                 deferredActionsList.Add(new DeferredAction(action, tickIndex + duration));
             }
         }
