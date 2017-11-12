@@ -162,7 +162,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return force;
             }
         }
-       private double GroundForce
+        private double GroundForce
         {
             get
             {
@@ -179,11 +179,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public double DispersionRelative => Dispersion / StartDispersion;
         public double GroundEnergy => (GroundForce + GroundDefence) / Dispersion;
 
-
+        public double Energy => GroundEnergy + AirEnergy;
 
         public override string ToString()
         {
-            return $"Squad [{Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], " +
+            return $"Squad [{(Squads)Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], " +
                    $"Dispersion [{Dispersion:f2}, {DispersionRelative:f2}], " +
                    $"AirEnergy [{AirEnergy:f2}, {AirEnergyRelative:f2}], " +
                    $"GroundEnergy [{GroundEnergy:f2}, {GroundEnergyRelative:f2}]";

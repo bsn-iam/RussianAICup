@@ -104,6 +104,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public static AbsolutePosition GetUnitsCenter(this List<Vehicle> units)
         {
+            if (!units.Any())
+                return new AbsolutePosition(0, 0);
+
             if (units.Count == 1) return 
                     new AbsolutePosition(units[0].X, units[0].Y);
 

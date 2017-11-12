@@ -75,10 +75,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             if (ActionList.Count == 0)
             {
-                var enemyDispersion = new Squad(Universe.OppUnits).Dispersion;
-                var myDispersion = new Squad(Universe.MyUnits).Dispersion;
-                var aggression = enemyDispersion / myDispersion;
-                Universe.Print($"Agression {aggression:f2}");
+                var enemy = new Squad(Universe.OppUnits);
+                var me = new Squad(Universe.MyUnits);
+                var aggression = me.Energy / enemy.Energy;
+                Universe.Print($"Agression {aggression:f2}, my energy {(me.Energy):f2}, enemy energy {(enemy.Energy):f2}");
 
                 foreach (var squad in SquadList.GetIteratorSquadListActive())
                 {
@@ -87,26 +87,23 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     if (aggression > 1)
                     {
                         //Atack
-                        if (squad.Id == (int)Squads.Tanks)
+                        if (squad.Id == (int)Squads.Tanks || squad.Id == (int)Squads.Ifvs)
                             squad.Attack(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
-                        if (squad.Id == (int)Squads.Ifvs)
-                            squad.Attack(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
+
+
+                        if (squad.Id == (int)Squads.Helicopters)
+                            squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Ifvs));
+                        if (squad.Id == (int)Squads.Fighters)
+                            squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Tanks));
+                        if (squad.Id == (int)Squads.Arrvs)
+                            squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Fighters));
                     }
                     else
                     {
                         //going to deff
-                        if (squad.Id == (int)Squads.Tanks)
-                            squad.Attack(ActionList, Universe.MapConerLeftUp);
-                        if (squad.Id == (int)Squads.Ifvs)
                             squad.Attack(ActionList, Universe.MapConerLeftUp);
                     }
 
-                    if (squad.Id == (int)Squads.Helicopters)
-                        squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Ifvs));
-                    if (squad.Id == (int)Squads.Fighters)
-                        squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Tanks));
-                    if (squad.Id == (int)Squads.Arrvs)
-                        squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Fighters));
 
                 }
             }
@@ -115,7 +112,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void ShowSquadList()
         {
-            if (Universe.World.TickIndex % 120 == 0)
+            if (Universe.World.TickIndex % 60 == 0)
             {
                 SquadList.Where(g => g.IsEnabled).ToList()
                     .Where(f => !f.IsEmpty).ToList()
