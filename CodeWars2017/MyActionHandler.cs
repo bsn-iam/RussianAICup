@@ -20,11 +20,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 var actionNow = actionList.Dequeue();
 
                 actionNow.Execute(universe);
-#if DEBUG
-                Console.WriteLine($"{Universe.World.TickIndex}. Action [{universe.Move.Action}] activated.");
+                universe.Print($"Action [{universe.Move.Action}] activated.");
                 if (!universe.Move.Action.Equals(ActionType.ClearAndSelect))
-                    Console.WriteLine($"Selection is {universe.GetSelectedUnits().Count} units.");
-#endif
+                    universe.Print($"Selection is {universe.GetSelectedUnits().Count} units.");
                 return;
             }
             Universe.Move.Action = ActionType.None;

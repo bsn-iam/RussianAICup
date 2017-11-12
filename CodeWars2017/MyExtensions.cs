@@ -11,11 +11,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static AbsolutePosition GetSquadCenter(this Universe universe, int squad)
         {
             var squadUnits = universe.GetSquadUnits(squad);
-            //Console.WriteLine($"Moving {squadUnits.Count} units");
+            //universe.Print($"Moving {squadUnits.Count} units");
 
             if (squadUnits.Count == 0)
             {
-                Console.WriteLine("Warning! Selection contains 0 units.");
+                universe.Print("Warning! Selection contains 0 units.");
                 return new AbsolutePosition(0, 0);
             }
 
@@ -49,11 +49,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static AbsolutePosition GetSelectionCenter(this Universe universe)
         {
             var selectedUnits = GetSelectedUnits(universe);
-            //Console.WriteLine($"Moving {squadUnits.Count} units");
+            //universe.Print($"Moving {squadUnits.Count} units");
 
             if (selectedUnits.Count == 0)
             {
-                   Console.WriteLine("Warning! Selection contains 0 units.");
+                   universe.Print("Warning! Selection contains 0 units.");
                 return new AbsolutePosition(0, 0);
             }
 
@@ -126,7 +126,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return new AbsolutePosition(centerUnit.X, centerUnit.Y);
         }
 
-        public static AbsolutePosition GetNearestPositionToTarget(this List<Vehicle> units, List<Vehicle> targetUnits)
+        public static AbsolutePosition GetPositionOfNearestTarget(this List<Vehicle> units, List<Vehicle> targetUnits)
         {
             var minDistance = Double.MaxValue;
             var position = units.GetUnitsCenter();
@@ -154,7 +154,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (unit.IsSelected) counter += 1;
 
             if (counter == 0)
-                Console.WriteLine("Warning! Selection contains 0 units.");
+                universe.Print("Warning! Selection contains 0 units.");
 
             return counter;
         }
@@ -193,6 +193,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static Squad ActionCreateNewSquadAlreadySelected(this Queue<IMoveAction> actions, List<Squad> squadList, int newSquadId) =>
             new Squad(actions, squadList, newSquadId);
 
+        public static List<Squad> GetIteratorSquadListActive (this List<Squad> squadList) => 
+            new List<Squad>(squadList
+                .Where(s => s.IsEnabled)
+                .Where(s => !s.IsEmpty)
+                .Where(s => s.ScalingTimeDelay.Equals(0)));
 
         public static void ActionScaleSquadToPosition(this Queue<IMoveAction> actions, Squad squad, double factor, AbsolutePosition position, int duration)
         {
@@ -241,6 +246,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var speedKoeff = squadAlfa.CruisingSpeed / squadDelta.CruisingSpeed;
 
             return new AbsolutePosition(squadAlfaPosition.X + dX * speedKoeff, squadAlfaPosition.Y + dY * speedKoeff);
+        }
+
+        public static void Print(this Universe universe, string message)
+        {
+#if DEBUG
+            Console.WriteLine(universe.World.TickIndex + ". " + message.Replace("Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.", ""));
+#endif
         }
     }
 }

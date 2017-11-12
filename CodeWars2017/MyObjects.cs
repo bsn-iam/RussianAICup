@@ -38,6 +38,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public AbsolutePosition MapConerLeftLower => new AbsolutePosition(0, World.Height);
         public AbsolutePosition MapConerRightUp => new AbsolutePosition(World.Width, 0);
 
+        public AbsolutePosition MapConerLeftUp => new AbsolutePosition(0, 0);
     }
     
     public class AbsolutePosition
@@ -122,6 +123,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return newId;
             }
         }
+        public bool HasCapacity => squadNumbers.Max() < maxNumber;
 
         public void Remove(int id) => squadNumbers.Remove(id);
     }

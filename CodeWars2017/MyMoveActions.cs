@@ -35,25 +35,30 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static void ActionAddSquadToCurrentSelection(this Queue<IMoveAction> moveActions, int squadId) =>
             moveActions.Enqueue(new ActionAddSquadToCurrentSelection(squadId));
 
-        public static void ActionCombineSquads(this Queue<IMoveAction> moveActions, List<Squad> squadList, Squad squadAlfa, Squad squadDelta, int newSquadId)
+        public static void ActionCombineSquads(this Queue<IMoveAction> moveActions, List<Squad> squadList, Squad squadAlfa, Squad squadDelta, int newSquadId, bool disableOld = true)
         {
             moveActions.ActionSelectSquad(squadAlfa.Id);
             moveActions.ActionAddSquadToCurrentSelection(squadDelta.Id);
             moveActions.ActionCreateNewSquadAlreadySelected(squadList, newSquadId);
 
-            squadAlfa.Disable();
-            squadDelta.Disable();
+            if (disableOld)
+            {
+                squadAlfa.Disable();
+                squadDelta.Disable();
+            }
+            else
+            {
+                squadList.GetSquadById(newSquadId).Disable();
+            }
         }
 
         public static void ActionCombineSquads(this Queue<IMoveAction> moveActions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
-            int newSquadId) => moveActions.ActionCombineSquads(squadList, squadList.GetSquadById(squadAlfaId), squadList.GetSquadById(squadDeltaId), newSquadId);
+            int newSquadId, bool disableOld = true) => 
+            moveActions.ActionCombineSquads(squadList, squadList.GetSquadById(squadAlfaId), squadList.GetSquadById(squadDeltaId), newSquadId, disableOld);
 
         #endregion
 
         #region Movement
-
-        //public static void ActionScaleSelectionToPosition(this Queue<IMoveAction> moveActions, double factor, AbsolutePosition position) =>
-        //    moveActions.Enqueue(new ActionScaleSelectedSquadToPosition(squad, factor, position));
 
         public static void ActionMoveSelectionToPosition(this Queue<IMoveAction> moveActions, AbsolutePosition position) =>
             moveActions.Enqueue(new ActionMoveSelectionToPosition(position));
@@ -94,9 +99,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squad.ScalingTimeDelay = duration;
             squad.IsWaitingForScaling = false;
 
-#if DEBUG
-            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
-#endif
+            universe.Print($"Action {this} is started.");
         }
     }
 
@@ -142,9 +145,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             universe.Move.Action = ActionType.AddToSelection;
             universe.Move.Group = squadId;
-#if DEBUG
-            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
-#endif
+            universe.Print($"Action {this} is started.");
         }
     }
 
@@ -164,9 +165,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Left = range.XLeft;
             universe.Move.Top = range.YTop;
             universe.Move.Bottom = range.YBottom;
-#if DEBUG
-            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
-#endif
+            universe.Print($"Action {this} is started.");
         }
     }
 
@@ -177,9 +176,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Action = ActionType.ClearAndSelect;
             universe.Move.Right = universe.World.Width;
             universe.Move.Bottom = universe.World.Height;
-#if DEBUG
-            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
-#endif
+            universe.Print($"Action {this} is started.");
         }
     }
 
@@ -195,9 +192,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             universe.Move.Action = ActionType.Assign;
             universe.Move.Group = squadId;
-#if DEBUG
-            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
-#endif
+            universe.Print($"Action {this} is started.");
         }
     }
 
@@ -212,14 +207,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public void Execute(Universe universe)
         {
             universe.Move.Action = ActionType.Move;
-            universe.Move.MaxSpeed = universe.GetSpeedForSelection();
+            //universe.Move.MaxSpeed = universe.GetSpeedForSelection();
             var selectionCenter = universe.GetSelectionCenter();
-            //Console.WriteLine($"Selection Center {selectionCenter.X}, {selectionCenter.Y}");
+            //universe.Print($"Selection Center {selectionCenter.X}, {selectionCenter.Y}");
             universe.Move.X = position.X - selectionCenter.X;
             universe.Move.Y = position.Y - selectionCenter.Y;
-#if DEBUG
-            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
-#endif
+            universe.Print($"Action {this} is started.");
         }
     }
 
@@ -236,15 +229,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             if (universe.GetSquadUnits(squadId).Count == 0)
             {
-                Console.WriteLine($"Warning! Squad [{(Squads)squadId}] has no units.");
+                universe.Print($"Warning! Squad [{(Squads)squadId}] has no units.");
                 universe.Move.Action = ActionType.None;
                 return;
             }
             universe.Move.Action = ActionType.ClearAndSelect;
             universe.Move.Group = squadId;
-#if DEBUG
-            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
-#endif
+            universe.Print($"Action {this} is started.");
         }
     }
 
@@ -261,7 +252,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             if (universe.GetTypeMyUnits(type).Count == 0)
             {
-                Console.WriteLine($"Warning! we have no units of type [{(VehicleType)type}].");
+                universe.Print($"Warning! we have no units of type [{(VehicleType)type}].");
                 universe.Move.Action = ActionType.None;
                 return;
             }
@@ -269,9 +260,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.VehicleType = type;
             universe.Move.Right = universe.World.Width;
             universe.Move.Bottom = universe.World.Height;
-#if DEBUG
-            Console.WriteLine($"{universe.World.TickIndex}.Action {this} is started.");
-#endif
+            universe.Print($"Action {this} is started.");
         }
     }
 

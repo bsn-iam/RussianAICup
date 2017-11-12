@@ -16,7 +16,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private const double MaxDispersionRelative = 0.9;
         private IdGenerator SquadIdGenerator;
 
-
         internal void RunTick(Universe universe)
         {
             Universe = universe;
@@ -29,10 +28,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             CheckDeferredActionList();
 
-#if DEBUG
             if (ActionList.Count > 10)
-                Console.WriteLine($"Action list already contains {ActionList.Count} actions.");
-#endif
+                universe.Print($"Action list already contains {ActionList.Count} actions.");
 
             GenerateActions();
         }
@@ -53,15 +50,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void GenerateActions()
         {
-#if DEBUG
-            if (Universe.World.TickIndex % 120 == 0)
-            {
-                SquadList.Where(g => g.IsEnabled).ToList()
-                    .Where(f => !f.IsEmpty).ToList()
-                    .ForEach(s => Console.WriteLine(s.ToString()));
-                Console.WriteLine();
-            }
-#endif
+    
+            ShowSquadList();
 
 
             //if (Universe.World.TickIndex == 50)
@@ -70,35 +60,76 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             //    ActionList.ActionMoveToOnePoint(SquadList, (int)Squads.Ifvs, (int)Squads.Helicopters);
             //}
 
-            if (Universe.World.TickIndex == 600)
+            //if (Universe.World.TickIndex == 600)
+            //{
+            //    //ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Tanks), SquadList.GetSquadById((int)Squads.Fighters), SquadIdGenerator.New);
+            //    //ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Ifvs), SquadList.GetSquadById((int)Squads.Helicopters), SquadIdGenerator.New);
+            //}
+
+            if (Universe.World.TickIndex == 50)
             {
-                //ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Tanks), SquadList.GetSquadById((int)Squads.Fighters), SquadIdGenerator.New);
-                //ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Ifvs), SquadList.GetSquadById((int)Squads.Helicopters), SquadIdGenerator.New);
+                ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Tanks), SquadList.GetSquadById((int)Squads.Fighters), SquadIdGenerator.New, false);
+                ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Ifvs), SquadList.GetSquadById((int)Squads.Helicopters), SquadIdGenerator.New, false);
+                ReduceScaleForAll();
             }
 
-            CheckForScale();
+            if (ActionList.Count == 0)
+            {
+                var enemyDispersion = new Squad(Universe.OppUnits).Dispersion;
+                var myDispersion = new Squad(Universe.MyUnits).Dispersion;
+                var aggression = enemyDispersion / myDispersion;
+                Universe.Print($"Agression {aggression:f2}");
 
-            if (ActionList.Count == 0 && Universe.World.TickIndex > 600)
-                foreach (var squad in new List<Squad>(SquadList)
-                    .Where(s => s.IsEnabled)
-                    .Where(s => !s.IsEmpty)
-                    .Where(s => s.ScalingTimeDelay.Equals(0)))
+                foreach (var squad in SquadList.GetIteratorSquadListActive())
                 {
                     //CheckForJoin(squad);
 
-                    squad.Attack(ActionList, Universe.MyUnits.GetNearestPositionToTarget(Universe.OppUnits));
-                }
-        }
-        
+                    if (aggression > 1)
+                    {
+                        //Atack
+                        if (squad.Id == (int)Squads.Tanks)
+                            squad.Attack(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
+                        if (squad.Id == (int)Squads.Ifvs)
+                            squad.Attack(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
+                    }
+                    else
+                    {
+                        //going to deff
+                        if (squad.Id == (int)Squads.Tanks)
+                            squad.Attack(ActionList, Universe.MapConerLeftUp);
+                        if (squad.Id == (int)Squads.Ifvs)
+                            squad.Attack(ActionList, Universe.MapConerLeftUp);
+                    }
 
-        private void CheckForScale()
+                    if (squad.Id == (int)Squads.Helicopters)
+                        squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Ifvs));
+                    if (squad.Id == (int)Squads.Fighters)
+                        squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Tanks));
+                    if (squad.Id == (int)Squads.Arrvs)
+                        squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Fighters));
+
+                }
+            }
+
+        }
+
+        private void ShowSquadList()
         {
-            //Console.WriteLine($"Action count is {ActionList.Count}");
-            if (ActionList.Count == 0)
-                foreach (var squad in new List<Squad>(SquadList)
-                    .Where(s => s.IsEnabled)
-                    .Where(s => !s.IsEmpty)
-                    .Where(s => s.ScalingTimeDelay.Equals(0)))
+            if (Universe.World.TickIndex % 120 == 0)
+            {
+                SquadList.Where(g => g.IsEnabled).ToList()
+                    .Where(f => !f.IsEmpty).ToList()
+                    .ForEach(s => Universe.Print(s.ToString()));
+                Universe.Print("");
+            }
+        }
+
+
+        private void ReduceScaleForAll()
+        {
+            //universe.Print($"Action count is {ActionList.Count}");
+            //if (ActionList.Count == 0)
+                foreach (var squad in SquadList.GetIteratorSquadListActive())
                 {
                     var dispersionCondition = squad.DispersionRelative > MaxDispersionRelative || squad.Dispersion > 25;
                     if (dispersionCondition && !squad.IsWaitingForScaling)
@@ -124,7 +155,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 var squadJoin = new Squad(squad, friendSquad);
                 if (squadJoin.Dispersion < squad.Dispersion)
                 {
-                    Console.WriteLine($"We can join! Squads Id {squad.Id} and {friendSquad.Id}");
+                    Universe.Print($"We can join! Squads Id {squad.Id} and {friendSquad.Id}");
                     ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById(squad.Id),
                         SquadList.GetSquadById(friendSquad.Id), SquadIdGenerator.New);
                 }
@@ -147,6 +178,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             //ActionList.ActionMoveAndCombine(SquadList, (int)Squads.Fighters, (int)Squads.Tanks, SquadIdGenerator.New, DeferredActionList, Universe.World.TickIndex, 1500);
 
         }
+
+        
 
 
     }

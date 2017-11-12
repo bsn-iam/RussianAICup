@@ -45,10 +45,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                  --ScalingTimeDelay;
 
             IsEmpty = !Units.Any();
-#if DEBUG
             //if (!this.IsEmpty && this.IsEnabled)
-            //Console.WriteLine("Updating " + this);
-#endif
+            //universe.Print("Updating " + this);
         }
 
 
@@ -112,6 +110,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             actions.ActionSelectSquad(Id);
             actions.ActionMoveSelectionToPosition(position);
+        }
+
+
+        internal void Follow(Queue<IMoveAction> actions, Squad thisSquad, Squad targetSquad)
+        {
+            actions.ActionSelectSquad(thisSquad.Id);
+            actions.ActionMoveSelectionToPosition(targetSquad.Units.GetUnitsCenter());
         }
 
         public double CruisingSpeed
