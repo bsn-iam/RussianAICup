@@ -72,6 +72,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public static double GetUnitsDispersionValue(this List<Vehicle> units)
         {
+            if (!units.Any())
+                return Double.MaxValue;
             var dispersionPerUnit = units.GetUnitsDispersionList();
             double dispersionSum = 0;
 
@@ -183,9 +185,71 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return speed;
         }
 
-
         //Action extensions
 
+        public static Vehicle GetMostDistantAmong(this Vehicle me, List<Vehicle> targets)
+        {
+            //carefully with 0 targets! We can get nuke for own position!
+
+            var distance = 0;
+            var mostDistant = me;
+            foreach (var target in targets)
+            {
+                var currentDistance = me.GetSquaredDistanceTo(target);
+                if ( currentDistance > distance)
+                    mostDistant = target;
+            }
+            return mostDistant;
+        }
+
+        public static Dictionary<Vehicle, List<Vehicle>> GetScoutObservation(this List<Vehicle> myUnits, List<Vehicle> targetUnits)
+        {
+            var observationList = new Dictionary<Vehicle, List<Vehicle>>();
+            foreach (var myUnit in myUnits)
+            {
+                var foundTargetUnits = new List<Vehicle>();
+
+                foreach (var targetUnit in targetUnits)
+                    if (myUnit.DoISeeThisUnit(targetUnit))
+                        foundTargetUnits.Add(targetUnit);
+
+                if (foundTargetUnits.Any())
+                    observationList.Add(myUnit, foundTargetUnits);
+
+            }
+            return observationList;
+        }
+
+        public static double GetTotalEnergyInRange(this Vehicle targetUnit, Universe universe, double range)
+        {
+            double totalEnergy = 0;
+            var myGuys = new List<Vehicle>();
+            var enemyGuys = new List<Vehicle>();
+            var squaredRange = range * range;
+
+            foreach (var enemyGuy in universe.OppUnits)
+                if (targetUnit.GetSquaredDistanceTo(enemyGuy) < squaredRange)
+                    enemyGuys.Add(enemyGuy);
+            foreach (var myGuy in universe.MyUnits)
+                if (targetUnit.GetSquaredDistanceTo(myGuy) < squaredRange && targetUnit != myGuy)
+                    myGuys.Add(myGuy);
+
+            totalEnergy = new Squad(myGuys).Energy - new Squad(enemyGuys).Energy;
+
+            return totalEnergy;
+        }
+
+
+        public static bool DoISeeThisUnit(this Vehicle myUnit, Vehicle targetUnit)
+        {
+            var squaredRange = myUnit.VisionRange * myUnit.VisionRange;
+            return myUnit.GetSquaredDistanceTo(targetUnit) < squaredRange;
+        }
+        public static bool DoISeeThisPoint(this Vehicle myUnit, AbsolutePosition point)
+        {
+            var squaredRange = myUnit.VisionRange * myUnit.VisionRange;
+            return myUnit.GetSquaredDistanceTo(point.X, point.Y) < squaredRange;
+        }
 
         public static Squad GetSquadById(this List<Squad>squadList, int squadId) => 
             squadList.FirstOrDefault(s => s.Id.Equals(squadId));

@@ -25,14 +25,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public Game Game { get; }
         public List<Vehicle> MyUnits { get; }
         public List<Vehicle> OppUnits { get; }
-    
-        public Universe(World world, Game game, List<Vehicle> myUnits, List<Vehicle> oppUnits, Move move)
+        public Player Player { get; }
+
+        public Universe(World world, Game game, List<Vehicle> myUnits, List<Vehicle> oppUnits, Move move, Player player)
         {
             World = world;
             Game = game;
             MyUnits = myUnits;
             OppUnits = oppUnits;
             Move = move;
+            Player = player;
         }
         public AbsolutePosition MapCenter => new AbsolutePosition(World.Width / 2.0D, World.Height / 2.0D);
         public AbsolutePosition MapConerLeftLower => new AbsolutePosition(0, World.Height);

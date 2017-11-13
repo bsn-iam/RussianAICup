@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 using System.Linq;
+using System.Timers;
 
 
 namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
@@ -18,28 +19,37 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
 
         public void Move(Player me, World world, Game game, Move move)
         {
+            
 #if DEBUG
-            RunTick(world, game, move);
+            RunTick(world, game, move, me);
 #else
             try
             {
-                RunTick(world, game, move);
+                RunTick(world, game, move, me);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.StackTrace);
             }
+
 #endif
+
         }
 
-        private void RunTick(World world, Game game, Move move)
+        private void RunTick(World world, Game game, Move move, Player player)
         {
+            DateTime startTime = DateTime.Now;
             UpdateUnitsStatus(world);
-            Universe = new Universe(world, game, UnitsMy, UnitsOpp, move);
+            Universe = new Universe(world, game, UnitsMy, UnitsOpp, move, player);
 
             SquadCalculator.RunTick(Universe);
 
             ActionHandler.RunTick(Universe, SquadCalculator.ActionList);
+            DateTime endTime = DateTime.Now;
+
+            var duration = (endTime - startTime).TotalMilliseconds;
+            if (duration > 150)
+                Universe.Print($"StepTime {duration:f2}");
         }
 
         private void UpdateUnitsStatus(World world)

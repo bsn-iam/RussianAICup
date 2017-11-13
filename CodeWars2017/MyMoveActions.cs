@@ -68,9 +68,47 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             int squadDeltaId) =>
             actions.Enqueue(new ActionMoveToOnePoint(actions, squadList, squadAlfaId, squadDeltaId));
 
+        public static void ActionRequestNuclearStrike(this Queue<IMoveAction> moveActions, Vehicle scout, Vehicle target) =>
+            moveActions.Enqueue(new ActionRequestNuclearStrike(scout, target));
+
 
         #endregion
 
+    }
+
+    internal class ActionRequestNuclearStrike : IMoveAction
+    {
+        private Vehicle scout;
+        private Vehicle target;
+        private AbsolutePosition targetPoint;
+
+        public ActionRequestNuclearStrike(Vehicle scout, Vehicle target)
+        {
+            this.scout = scout;
+            this.target = target;
+            this.targetPoint =new AbsolutePosition(target.X, target.Y);
+        }
+
+        public void Execute(Universe universe)
+        {
+            if (scout.Durability != 0 && scout.DoISeeThisPoint(targetPoint))
+            {
+                universe.Move.Action = ActionType.TacticalNuclearStrike;
+                universe.Move.X = target.X;
+                universe.Move.Y = target.Y;
+                universe.Move.VehicleId = scout.Id;
+
+                universe.Print($"Action {this} is started to [{target.X:f2}, {target.Y:f2}].");
+            }
+            else
+            {
+                universe.Print($"Warning! Action {this} is skipped.");
+                if (scout.Durability == 0)
+                    universe.Print($"Warning! Scout is dead..");
+                if (!scout.DoISeeThisPoint(targetPoint))
+                    universe.Print($"Warning! Scout outside the range.");
+            }
+        }
     }
 
     internal class ActionScaleSelectedSquadToPosition : IMoveAction
@@ -145,7 +183,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             universe.Move.Action = ActionType.AddToSelection;
             universe.Move.Group = squadId;
-            universe.Print($"Action {this} is started.");
+            //universe.Print($"Action {this} is started.");
         }
     }
 
@@ -165,7 +203,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Left = range.XLeft;
             universe.Move.Top = range.YTop;
             universe.Move.Bottom = range.YBottom;
-            universe.Print($"Action {this} is started.");
+            //universe.Print($"Action {this} is started.");
         }
     }
 
@@ -176,7 +214,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Action = ActionType.ClearAndSelect;
             universe.Move.Right = universe.World.Width;
             universe.Move.Bottom = universe.World.Height;
-            universe.Print($"Action {this} is started.");
+            //universe.Print($"Action {this} is started.");
         }
     }
 
@@ -192,7 +230,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             universe.Move.Action = ActionType.Assign;
             universe.Move.Group = squadId;
-            universe.Print($"Action {this} is started.");
+            //universe.Print($"Action {this} is started.");
         }
     }
 
@@ -212,7 +250,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             //universe.Print($"Selection Center {selectionCenter.X}, {selectionCenter.Y}");
             universe.Move.X = position.X - selectionCenter.X;
             universe.Move.Y = position.Y - selectionCenter.Y;
-            universe.Print($"Action {this} is started.");
+            //universe.Print($"Action {this} is started.");
         }
     }
 
@@ -235,7 +273,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
             universe.Move.Action = ActionType.ClearAndSelect;
             universe.Move.Group = squadId;
-            universe.Print($"Action {this} is started.");
+            //universe.Print($"Action {this} is started.");
         }
     }
 
@@ -260,7 +298,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.VehicleType = type;
             universe.Move.Right = universe.World.Width;
             universe.Move.Bottom = universe.World.Height;
-            universe.Print($"Action {this} is started.");
+            //universe.Print($"Action {this} is started.");
         }
     }
 

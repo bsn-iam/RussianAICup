@@ -11,6 +11,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public List<Squad> SquadList { get; internal set; } =new List<Squad>();
         public List<DeferredAction> DeferredActionList { get; } = new List<DeferredAction>();
         public Queue<IMoveAction> ActionList { get; } = new Queue<IMoveAction>();
+        public Boolean nukeRequested { get; internal set; } = false;
         public Universe Universe;
         private const int ActionListLength = 6;
         private const double MaxDispersionRelative = 0.9;
@@ -26,12 +27,50 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             foreach (var squad in SquadList)
                 squad.UpdateState(Universe);
 
+            CheckForNuclearStrike(universe);
+
             CheckDeferredActionList();
 
             if (ActionList.Count > 10)
                 universe.Print($"Action list already contains {ActionList.Count} actions.");
 
             GenerateActions();
+        }
+
+        private void CheckForNuclearStrike(Universe universe)
+        {
+            if (universe.Player.RemainingNuclearStrikeCooldownTicks != 0)
+                nukeRequested = false;
+
+            if (universe.Player.RemainingNuclearStrikeCooldownTicks == 0 && !nukeRequested)
+            {
+                Dictionary<Vehicle, List<Vehicle>> scoutObservation = universe.MyUnits.GetScoutObservation(universe.OppUnits);
+                Vehicle target = null;
+                Vehicle scout = null;
+                double maxNuclearResult = 0;
+
+                foreach (var observation in scoutObservation)
+                {
+                    var potentialTarget = observation.Key.GetMostDistantAmong(observation.Value);
+                    var nulcearRange = universe.Game.TacticalNuclearStrikeRadius;
+                    double currentNuclearResult = -potentialTarget.GetTotalEnergyInRange(universe, nulcearRange);
+
+                    if (currentNuclearResult > maxNuclearResult)
+                    {
+                        maxNuclearResult = currentNuclearResult;
+                        scout = observation.Key;
+                        target = potentialTarget;
+                        universe.Print($"Expected win in nuke {maxNuclearResult:f2}");
+                    }
+                }
+
+                if (scout != null && target != null && maxNuclearResult > 0)
+                {
+                    nukeRequested = true;
+                    ActionList.ActionRequestNuclearStrike(scout, target);
+                }
+            }
+
         }
 
         private void CheckDeferredActionList()
@@ -84,7 +123,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 {
                     //CheckForJoin(squad);
 
-                    if (aggression > 1)
+                    if (aggression > 0.9)
                     {
                         //Atack
                         if (squad.Id == (int)Squads.Tanks || squad.Id == (int)Squads.Ifvs)
