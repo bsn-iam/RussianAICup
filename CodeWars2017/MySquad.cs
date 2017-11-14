@@ -23,6 +23,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public int ScalingTimeDelay { get; internal set; }
         public bool IsWaitingForScaling { get; internal set; }
+        public bool IsScout { get; internal set; } = false;
 
         public void UpdateState(Universe universe)
         {
@@ -91,6 +92,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             IsEnabled = false;
             IsAbstract = isAbstract;
         }
+
         public Squad(Squad squadAlfa, Squad squadDelta, bool isAbstract = true)
         {
             if (!isAbstract)
@@ -106,14 +108,20 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             IsAbstract = isAbstract;
         }
 
-        internal void Attack(Queue<IMoveAction> actions, AbsolutePosition position)
+        //public Squad(int id)
+        //{
+        //    Id = id;
+        //    IsCreated = false;
+        //    IsEnabled = true;
+        //}
+
+        internal void DoAttack(Queue<IMoveAction> actions, AbsolutePosition position)
         {
             actions.ActionSelectSquad(Id);
             actions.ActionMoveSelectionToPosition(position);
         }
 
-
-        internal void Follow(Queue<IMoveAction> actions, Squad thisSquad, Squad targetSquad)
+        internal void DoFollow(Queue<IMoveAction> actions, Squad thisSquad, Squad targetSquad)
         {
             actions.ActionSelectSquad(thisSquad.Id);
             actions.ActionMoveSelectionToPosition(targetSquad.Units.GetUnitsCenter());

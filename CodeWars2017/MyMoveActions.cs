@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,6 +16,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public static void ActionSelectAll(this Queue<IMoveAction> moveActions) =>
             moveActions.Enqueue(new ActionSelectAll());
+//        public static void ActionSelectOneUnit(this Queue<IMoveAction> moveActions, Vehicle unit) =>
+//            moveActions.Enqueue(new ActionSelectOneUnit(unit));
 
         public static void ActionSelectVenicleType(this Queue<IMoveAction> moveActions, VehicleType type) =>
             moveActions.Enqueue(new ActionSelectVenicleType(type));
@@ -27,7 +30,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         //Assignment
         public static void ActionAssignSelectionToSquad(this Queue<IMoveAction> moveActions, int squadId) =>
-            moveActions.Enqueue(new ActionAssignSelectionToSquad(squadId));
+            moveActions.Enqueue(new ActionAssignSelectionToSquadOld(squadId));
 
         #endregion
 
@@ -56,6 +59,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             int newSquadId, bool disableOld = true) => 
             moveActions.ActionCombineSquads(squadList, squadList.GetSquadById(squadAlfaId), squadList.GetSquadById(squadDeltaId), newSquadId, disableOld);
 
+        public static void ActionAppointNewScout(this Queue<IMoveAction> moveActions, List<Squad> squadList,
+            IdGenerator squadIdGenerator)
+        {
+            if (squadIdGenerator.HasCapacity)
+            {
+                const VehicleType type = VehicleType.Fighter;
+                var scoutOwner = squadList.FirstOrDefault(s => s.Units.Any(u => u.Type.Equals(type)));
+
+                if (scoutOwner == null)
+                    return;
+
+                var candidateList = scoutOwner.Units.Where(u => u.Type == type).ToList();
+                var scout = candidateList.GetMostDistantUnit();
+
+                moveActions.Enqueue(new ActionSelectOneUnit(scout));
+                foreach (var groupId in scout.Groups)
+                    moveActions.Enqueue(new ActionDismissSelectionFromSquad(groupId));
+                var scoutSquadId = squadIdGenerator.New;
+
+                moveActions.ActionCreateNewSquadAlreadySelected(squadList, scoutSquadId);
+                squadList.GetSquadById(scoutSquadId).IsScout = true;
+
+            }
+        }
+
+
         #endregion
 
         #region Movement
@@ -75,6 +104,23 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         #endregion
 
     }
+
+    internal class ActionDismissSelectionFromSquad : IMoveAction
+    {
+        private readonly int groupId;
+
+        public ActionDismissSelectionFromSquad(int groupId)
+        {
+            this.groupId = groupId;
+        }
+
+        public void Execute(Universe universe)
+        {
+            universe.Move.Action = ActionType.Dismiss;
+            universe.Move.Group = groupId;
+        }
+    }
+
 
     internal class ActionRequestNuclearStrike : IMoveAction
     {
@@ -217,12 +263,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             //universe.Print($"Action {this} is started.");
         }
     }
+    internal class ActionSelectOneUnit : IMoveAction
+    {
+        private Vehicle unit;
 
-    public class ActionAssignSelectionToSquad : IMoveAction
+        public ActionSelectOneUnit(Vehicle unit)
+        {
+            this.unit = unit;
+        }
+
+        public void Execute(Universe universe)
+        {
+            universe.Move.Action = ActionType.ClearAndSelect;
+            universe.Move.Right = unit.X + 2;
+            universe.Move.Left = unit.X - 2;
+            universe.Move.Bottom = unit.Y + 2;
+            universe.Move.Top = unit.Y - 2;
+            //universe.Print($"Action {this} is started.");
+        }
+    }
+
+
+    public class ActionAssignSelectionToSquadOld : IMoveAction
     {
         private readonly int squadId;
 
-        public ActionAssignSelectionToSquad(int squadId)
+        public ActionAssignSelectionToSquadOld(int squadId)
         {
             this.squadId = squadId;
         }
@@ -234,6 +300,37 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
     }
 
+    //TODO Request squad creation from Execute - to avoid dead unit in not created squad
+
+//    public class ActionAssignSelectionToSquad : IMoveAction
+//    {
+//        private readonly int squadId;
+//        private List<Squad> squadList;
+//
+//        public ActionAssignSelectionToSquad(int squadId, List<Squad> squadList)
+//        {
+//            this.squadId = squadId;
+//            this.squadList = squadList;
+//        }
+//        public void Execute(Universe universe)
+//        {
+//            var units = universe.GetSelectedUnits().Any();
+//            if (universe.GetSelectedUnits().Any())
+//            {
+//                universe.Move.Action = ActionType.Assign;
+//                universe.Move.Group = squadId;
+//                //universe.Print($"Action {this} is started.");
+//                squadList.Add(new Squad(squadId));
+//            }
+//            else
+//            {
+//                universe.Print("Warning! Attempt to assign to group empty selection!");
+//            }
+//
+//
+//        }
+//    }
+
     public class ActionMoveSelectionToPosition : IMoveAction
     {
         private readonly AbsolutePosition position;
@@ -244,10 +341,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
         public void Execute(Universe universe)
         {
-            universe.Move.Action = ActionType.Move;
-            //universe.Move.MaxSpeed = universe.GetSpeedForSelection();
             var selectionCenter = universe.GetSelectionCenter();
-            //universe.Print($"Selection Center {selectionCenter.X}, {selectionCenter.Y}");
+            if (selectionCenter.GetDistanceToPoint(position.X, position.Y) < 5)
+            {
+                universe.Print("Can avoid the movement.");
+                return;
+            }
+
+            universe.Move.Action = ActionType.Move;
             universe.Move.X = position.X - selectionCenter.X;
             universe.Move.Y = position.Y - selectionCenter.Y;
             //universe.Print($"Action {this} is started.");

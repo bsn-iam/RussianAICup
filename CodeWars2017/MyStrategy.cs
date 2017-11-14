@@ -48,7 +48,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             DateTime endTime = DateTime.Now;
 
             var duration = (endTime - startTime).TotalMilliseconds;
-            if (duration > 150)
+            if (duration > 1000)
                 Universe.Print($"StepTime {duration:f2}");
         }
 

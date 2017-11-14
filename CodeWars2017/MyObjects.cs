@@ -125,7 +125,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return newId;
             }
         }
-        public bool HasCapacity => squadNumbers.Max() < maxNumber;
+        public bool HasCapacity => !squadNumbers.Any() || squadNumbers.Max() < maxNumber;
 
         public void Remove(int id) => squadNumbers.Remove(id);
     }

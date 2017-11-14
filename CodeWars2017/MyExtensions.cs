@@ -8,6 +8,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 {
     public static class MyExtensions
     {
+
+#region UniverseExtensions
         public static AbsolutePosition GetSquadCenter(this Universe universe, int squad)
         {
             var squadUnits = universe.GetSquadUnits(squad);
@@ -53,7 +55,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             if (selectedUnits.Count == 0)
             {
-                   universe.Print("Warning! Selection contains 0 units.");
+                universe.Print("Warning! Selection contains 0 units.");
                 return new AbsolutePosition(0, 0);
             }
 
@@ -70,87 +72,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return selectedUnits;
         }
 
-        public static double GetUnitsDispersionValue(this List<Vehicle> units)
+        public static double GetSpeedForSelection(this Universe universe)
         {
-            if (!units.Any())
-                return Double.MaxValue;
-            var dispersionPerUnit = units.GetUnitsDispersionList();
-            double dispersionSum = 0;
-
-            foreach (var dispersion in dispersionPerUnit)
-                dispersionSum += dispersion.Value;
-            return dispersionSum / units.Count;
-        }
-
-        public static Dictionary<long, double> GetUnitsDispersionList(this List<Vehicle> units)
-        {
-            Dictionary<long, double> dispersionPerUnit = new Dictionary<long, double>();
-            if (units.Count == 1)
-            {
-                dispersionPerUnit.Add(units[0].Id, 0);
-                return dispersionPerUnit;
-            }
-
-            //get sum of distance to friends
-            foreach (var u1 in units)
-            {
-                double u1Distance = 0;
-                foreach (var u2 in units)
-                    u1Distance += GetDistanceBetweenUnits(u1, u2);
-                if (!dispersionPerUnit.ContainsKey(u1.Id))
-                    dispersionPerUnit.Add(u1.Id, u1Distance / units.Count);
-            }
-            //greater value - more distant unit
-            return dispersionPerUnit;
-        }
-
-        public static AbsolutePosition GetUnitsCenter(this List<Vehicle> units)
-        {
-            if (!units.Any())
-                return new AbsolutePosition(0, 0);
-
-            if (units.Count == 1) return 
-                    new AbsolutePosition(units[0].X, units[0].Y);
-
-            var dispersionPerUnit = units.GetUnitsDispersionList();
-
-            //get the ID of less distant.
-            var minDistance = Double.MaxValue;
-            long centerUnitId=0;
-            foreach (var pair in dispersionPerUnit)
-            {
-                if (pair.Value > 0.01 && pair.Value < minDistance)
-                {
-                    minDistance = pair.Value;
-                    centerUnitId = pair.Key;
-                }
-            }
-
-            //return position of less distant unit
-            var centerUnit = units.First(u =>u.Id.Equals(centerUnitId));
-            return new AbsolutePosition(centerUnit.X, centerUnit.Y);
-        }
-
-        public static AbsolutePosition GetPositionOfNearestTarget(this List<Vehicle> units, List<Vehicle> targetUnits)
-        {
-            var minDistance = Double.MaxValue;
-            var position = units.GetUnitsCenter();
-
+            var speed = double.MaxValue;
+            var units = universe.MyUnits;
             foreach (var unit in units)
-                foreach (var target in targetUnits)
-                {
-                    var distance = GetDistanceBetweenUnits(unit, target);
-                    if (distance < minDistance)
-                    {
-                        minDistance = distance;
-                        position= new AbsolutePosition(target.X, target.Y);
-                    }
-                }
-            return position;
-        }
+                if (speed > unit.MaxSpeed)
+                    speed = unit.MaxSpeed;
 
-        public static double GetDistanceBetweenUnits(Vehicle u1, Vehicle u2) =>
-            Math.Sqrt((u1.X - u2.X) * (u1.X - u2.X) + (u1.Y - u2.Y) * (u1.Y - u2.Y));
+            return speed;
+        }
 
         public static int SelectionCount(this Universe universe)
         {
@@ -164,29 +95,67 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return counter;
         }
 
-        public static Range GetRange(this AbsolutePosition position, double radius)
+        public static void Print(this Universe universe, string message)
         {
-            var XLeft = position.X - radius;
-            var XRight = position.X - radius;
-            var YTop = position.Y - radius;
-            var YBottom = position.Y - radius;
-
-            return new Range(XLeft, XRight, YTop, YBottom);
+#if DEBUG
+            Console.WriteLine(universe.World.TickIndex + ". " + message.Replace("Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.", ""));
+#endif
         }
 
-        public static double GetSpeedForSelection(this Universe universe)
+        #endregion
+
+
+#region PositionExtensions
+        public static AbsolutePosition GetUnitsCenter(this List<Vehicle> units)
         {
-            var speed = double.MaxValue;
-            var units = universe.MyUnits;
+            if (!units.Any())
+                return new AbsolutePosition(0, 0);
+
+            if (units.Count == 1) return
+                new AbsolutePosition(units[0].X, units[0].Y);
+
+            var dispersionPerUnit = units.GetUnitsDispersionList();
+
+            //get the ID of less distant.
+            var minDistance = Double.MaxValue;
+            long centerUnitId = 0;
+            foreach (var pair in dispersionPerUnit)
+            {
+                if (pair.Value > 0.01 && pair.Value < minDistance)
+                {
+                    minDistance = pair.Value;
+                    centerUnitId = pair.Key;
+                }
+            }
+
+            //return position of less distant unit
+            var centerUnit = units.First(u => u.Id.Equals(centerUnitId));
+            return new AbsolutePosition(centerUnit.X, centerUnit.Y);
+        }
+
+        public static AbsolutePosition GetPositionOfNearestTarget(this List<Vehicle> units, List<Vehicle> targetUnits)
+        {
+            var minDistance = Double.MaxValue;
+            var position = units.GetUnitsCenter();
+
             foreach (var unit in units)
-                if (speed > unit.MaxSpeed)
-                    speed = unit.MaxSpeed;
-
-            return speed;
+            foreach (var target in targetUnits)
+            {
+                var distance = GetDistanceBetweenUnits(unit, target);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    position = new AbsolutePosition(target.X, target.Y);
+                }
+            }
+            return position;
         }
 
-        //Action extensions
 
+        #endregion
+
+
+#region VehicleExtensions
         public static Vehicle GetMostDistantAmong(this Vehicle me, List<Vehicle> targets)
         {
             //carefully with 0 targets! We can get nuke for own position!
@@ -202,23 +171,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return mostDistant;
         }
 
-        public static Dictionary<Vehicle, List<Vehicle>> GetScoutObservation(this List<Vehicle> myUnits, List<Vehicle> targetUnits)
-        {
-            var observationList = new Dictionary<Vehicle, List<Vehicle>>();
-            foreach (var myUnit in myUnits)
-            {
-                var foundTargetUnits = new List<Vehicle>();
-
-                foreach (var targetUnit in targetUnits)
-                    if (myUnit.DoISeeThisUnit(targetUnit))
-                        foundTargetUnits.Add(targetUnit);
-
-                if (foundTargetUnits.Any())
-                    observationList.Add(myUnit, foundTargetUnits);
-
-            }
-            return observationList;
-        }
 
         public static double GetTotalEnergyInRange(this Vehicle targetUnit, Universe universe, double range)
         {
@@ -250,9 +202,122 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var squaredRange = myUnit.VisionRange * myUnit.VisionRange;
             return myUnit.GetSquaredDistanceTo(point.X, point.Y) < squaredRange;
         }
+        #endregion
 
-        public static Squad GetSquadById(this List<Squad>squadList, int squadId) => 
+
+#region VehicleListExtension
+
+
+        public static double GetUnitsDispersionValue(this List<Vehicle> units)
+        {
+            if (!units.Any())
+                return Double.MaxValue;
+            var dispersionPerUnit = units.GetUnitsDispersionList();
+            double dispersionSum = 0;
+
+            foreach (var dispersion in dispersionPerUnit)
+                dispersionSum += dispersion.Value;
+            return dispersionSum / units.Count;
+        }
+
+        public static Vehicle GetMostDistantUnit(this List<Vehicle> candidateList)
+        {
+            var scuadCenterPosition = candidateList.GetUnitsCenter();
+            var candidate = candidateList.FirstOrDefault();
+            double measure = 0;
+            foreach (var unit in candidateList)
+            {
+                var distance = unit.GetSquaredDistanceTo(scuadCenterPosition.X, scuadCenterPosition.Y);
+                if (distance > measure)
+                {
+                    candidate = unit;
+                    measure = distance;
+                }
+            }
+            return candidate;
+        }
+
+        public static Dictionary<Vehicle, List<Vehicle>> GetScoutObservation(this List<Vehicle> myUnits, List<Vehicle> targetUnits)
+        {
+            var observationList = new Dictionary<Vehicle, List<Vehicle>>();
+            foreach (var myUnit in myUnits)
+            {
+                var foundTargetUnits = new List<Vehicle>();
+
+                foreach (var targetUnit in targetUnits)
+                    if (myUnit.DoISeeThisUnit(targetUnit))
+                        foundTargetUnits.Add(targetUnit);
+
+                if (foundTargetUnits.Any())
+                    observationList.Add(myUnit, foundTargetUnits);
+
+            }
+            return observationList;
+        }
+
+
+        public static Squad GetSquadById(this List<Squad> squadList, int squadId) =>
             squadList.FirstOrDefault(s => s.Id.Equals(squadId));
+
+
+        public static Dictionary<long, double> GetUnitsDispersionList(this List<Vehicle> units)
+        {
+            Dictionary<long, double> dispersionPerUnit = new Dictionary<long, double>();
+            if (units.Count == 1)
+            {
+                dispersionPerUnit.Add(units[0].Id, 1);
+                return dispersionPerUnit;
+            }
+
+            //get sum of distance to friends
+            foreach (var u1 in units)
+            {
+                double u1Distance = 0;
+                foreach (var u2 in units)
+                    u1Distance += GetDistanceBetweenUnits(u1, u2);
+                if (!dispersionPerUnit.ContainsKey(u1.Id))
+                    dispersionPerUnit.Add(u1.Id, u1Distance / units.Count);
+            }
+            //greater value - more distant unit
+
+            return dispersionPerUnit;
+        }
+
+        #endregion
+
+
+#region SquadListExtensions
+
+        public static int GetPeriodPerMeeting(this List<Squad> squadList, int squadAlfaId, int squadDeltaId)
+        {
+            var meetingPoint = squadList.GetMeetingPoint(squadAlfaId, squadDeltaId);
+            var squadAlfa = squadList.GetSquadById(squadAlfaId);
+            var distance = meetingPoint.GetDistanceToPoint(squadAlfa.Units.GetUnitsCenter());
+            return (int)Math.Round(distance / squadAlfa.CruisingSpeed);
+        }
+
+
+        public static AbsolutePosition GetMeetingPoint(this List<Squad> squadList, int squadAlfaId, int squadDeltaId)
+        {
+            var squadAlfa = squadList.GetSquadById(squadAlfaId);
+            var squadAlfaPosition = squadAlfa.Units.GetUnitsCenter();
+
+            var squadDelta = squadList.GetSquadById(squadDeltaId);
+            var squadDeltaPosition = squadDelta.Units.GetUnitsCenter();
+
+            var dX = squadDeltaPosition.X - squadAlfaPosition.X;
+            var dY = squadDeltaPosition.Y - squadAlfaPosition.Y;
+            var speedKoeff = squadAlfa.CruisingSpeed / squadDelta.CruisingSpeed;
+
+            return new AbsolutePosition(squadAlfaPosition.X + dX * speedKoeff, squadAlfaPosition.Y + dY * speedKoeff);
+        }
+
+
+        #endregion
+
+
+#region ActionListExtensions
+
 
         public static Squad ActionCreateNewSquad(this Queue<IMoveAction> actions, List<Squad> squadList, int newSquadId, VehicleType type) =>
             new Squad(actions, squadList, newSquadId, type);
@@ -260,7 +325,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static Squad ActionCreateNewSquadAlreadySelected(this Queue<IMoveAction> actions, List<Squad> squadList, int newSquadId) =>
             new Squad(actions, squadList, newSquadId);
 
-        public static List<Squad> GetIteratorSquadListActive (this List<Squad> squadList) => 
+        public static List<Squad> GetIteratorSquadListActive(this List<Squad> squadList) =>
             new List<Squad>(squadList
                 .Where(s => s.IsEnabled)
                 .Where(s => !s.IsEmpty)
@@ -289,37 +354,24 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
-        //SquadList extensions
+        #endregion
 
-        public static int GetPeriodPerMeeting(this List<Squad> squadList, int squadAlfaId, int squadDeltaId)
+
+        public static double GetDistanceBetweenUnits(Vehicle u1, Vehicle u2) =>
+            Math.Sqrt((u1.X - u2.X) * (u1.X - u2.X) + (u1.Y - u2.Y) * (u1.Y - u2.Y));
+
+
+        public static Range GetRange(this AbsolutePosition position, double radius)
         {
-            var meetingPoint = squadList.GetMeetingPoint(squadAlfaId, squadDeltaId);
-            var squadAlfa = squadList.GetSquadById(squadAlfaId);
-            var distance = meetingPoint.GetDistanceToPoint(squadAlfa.Units.GetUnitsCenter());
-            return (int)Math.Round(distance / squadAlfa.CruisingSpeed);
+            var XLeft = position.X - radius;
+            var XRight = position.X - radius;
+            var YTop = position.Y - radius;
+            var YBottom = position.Y - radius;
+
+            return new Range(XLeft, XRight, YTop, YBottom);
         }
 
 
-        public static AbsolutePosition GetMeetingPoint(this List<Squad> squadList, int squadAlfaId, int squadDeltaId)
-        {
-            var squadAlfa = squadList.GetSquadById(squadAlfaId);
-            var squadAlfaPosition = squadAlfa.Units.GetUnitsCenter();
 
-            var squadDelta = squadList.GetSquadById(squadDeltaId);
-            var squadDeltaPosition = squadDelta.Units.GetUnitsCenter();
-
-            var dX = squadDeltaPosition.X - squadAlfaPosition.X;
-            var dY = squadDeltaPosition.Y - squadAlfaPosition.Y;
-            var speedKoeff = squadAlfa.CruisingSpeed / squadDelta.CruisingSpeed;
-
-            return new AbsolutePosition(squadAlfaPosition.X + dX * speedKoeff, squadAlfaPosition.Y + dY * speedKoeff);
-        }
-
-        public static void Print(this Universe universe, string message)
-        {
-#if DEBUG
-            Console.WriteLine(universe.World.TickIndex + ". " + message.Replace("Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.", ""));
-#endif
-        }
     }
 }

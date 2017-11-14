@@ -27,14 +27,27 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             foreach (var squad in SquadList)
                 squad.UpdateState(Universe);
 
+            if (ActionList.Count == 0)
+                universe.Print($"Action list is empty.");
+
             CheckForNuclearStrike(universe);
+
+            CheckForScoutsAmount();
 
             CheckDeferredActionList();
 
-            if (ActionList.Count > 10)
-                universe.Print($"Action list already contains {ActionList.Count} actions.");
-
             GenerateActions();
+        }
+
+        private void CheckForScoutsAmount()
+        {
+            var scoutsAmount = SquadList.Count(
+                s => s.IsScout &&
+                    (!s.IsCreated ||
+                    s.Units.Any(u => u.Durability != 0)));
+
+            if (scoutsAmount == 0)
+                ActionList.ActionAppointNewScout(SquadList, SquadIdGenerator);
         }
 
         private void CheckForNuclearStrike(Universe universe)
@@ -92,19 +105,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     
             ShowSquadList();
 
-
-            //if (Universe.World.TickIndex == 50)
-            //{
-            //    ActionList.ActionMoveToOnePoint(SquadList, (int)Squads.Tanks, (int)Squads.Fighters);
-            //    ActionList.ActionMoveToOnePoint(SquadList, (int)Squads.Ifvs, (int)Squads.Helicopters);
-            //}
-
-            //if (Universe.World.TickIndex == 600)
-            //{
-            //    //ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Tanks), SquadList.GetSquadById((int)Squads.Fighters), SquadIdGenerator.New);
-            //    //ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Ifvs), SquadList.GetSquadById((int)Squads.Helicopters), SquadIdGenerator.New);
-            //}
-
             if (Universe.World.TickIndex == 50)
             {
                 ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Tanks), SquadList.GetSquadById((int)Squads.Fighters), SquadIdGenerator.New, false);
@@ -122,31 +122,56 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 foreach (var squad in SquadList.GetIteratorSquadListActive())
                 {
                     //CheckForJoin(squad);
+                    if (squad.IsScout)
+                    {
+                        var scout = squad.Units.FirstOrDefault();
+                        if (scout == null)
+                            continue;
 
-                    if (aggression > 0.9)
+                        var requiredPosition = GeneratePositionForScout(squad);
+                        squad.DoAttack(ActionList, requiredPosition);
+                    }
+                        
+
+                    if (aggression > 0.85)
                     {
                         //Atack
                         if (squad.Id == (int)Squads.Tanks || squad.Id == (int)Squads.Ifvs)
-                            squad.Attack(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
+                            squad.DoAttack(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
 
 
                         if (squad.Id == (int)Squads.Helicopters)
-                            squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Ifvs));
+                            squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int)Squads.Ifvs));
                         if (squad.Id == (int)Squads.Fighters)
-                            squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Tanks));
+                            squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int)Squads.Tanks));
                         if (squad.Id == (int)Squads.Arrvs)
-                            squad.Follow(ActionList, squad, SquadList.GetSquadById((int)Squads.Fighters));
+                            squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int)Squads.Fighters));
                     }
                     else
                     {
                         //going to deff
-                            squad.Attack(ActionList, Universe.MapConerLeftUp);
+                        if (!squad.IsScout)
+                            squad.DoAttack(ActionList, Universe.MapConerLeftUp);
                     }
 
 
                 }
             }
 
+        }
+
+        private AbsolutePosition GeneratePositionForScout(Squad squad)
+        {
+            var scout = squad.Units.FirstOrDefault();
+            var enemyPosition = squad.Units.GetPositionOfNearestTarget(Universe.OppUnits);
+            var distanceFromEnemy = scout.AerialAttackRange * 2.5;
+            var distanceToEnemy = scout.GetDistanceTo(enemyPosition.X, enemyPosition.Y);
+            var koeff = (distanceToEnemy - distanceFromEnemy) / distanceToEnemy;
+            var targetX = scout.X + (enemyPosition.X - scout.X) * koeff;
+            var targetY = scout.Y + (enemyPosition.Y - scout.Y) * koeff;
+
+            var requiredPosition = new AbsolutePosition(targetX, targetY);
+            return requiredPosition;
         }
 
         private void ShowSquadList()
