@@ -145,7 +145,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 double force = 0;
                 foreach (var unit in Units)
-                    force += unit.AerialDefence;
+                    force += unit.AerialDefence * unit.GetUnitHealthIndex();
                 return force;
             }
         }
@@ -155,7 +155,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 double force = 0;
                 foreach (var unit in Units)
-                    force += unit.GroundDefence;
+                    force += unit.GroundDefence * unit.GetUnitHealthIndex();
                 return force;
             }
         }
@@ -166,7 +166,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 double force = 0;
                 foreach (var unit in Units)
-                    force += unit.AerialDamage;
+                    force += unit.AerialDamage * unit.GetUnitHealthIndex();
                 return force;
             }
         }
@@ -176,8 +176,18 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 double force = 0;
                 foreach (var unit in Units)
-                    force += unit.GroundDamage;
+                    force += unit.GroundDamage * unit.GetUnitHealthIndex();
                 return force;
+            }
+        }
+
+        public double Health {
+            get
+            {
+                var healthIndexList = new List<double>();
+                foreach (var unit in Units)
+                    healthIndexList.Add(unit.GetUnitHealthIndex());
+                return healthIndexList.Average();
             }
         }
 
@@ -195,6 +205,19 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                    $"Dispersion [{Dispersion:f2}, {DispersionRelative:f2}], " +
                    $"AirEnergy [{AirEnergy:f2}, {AirEnergyRelative:f2}], " +
                    $"GroundEnergy [{GroundEnergy:f2}, {GroundEnergyRelative:f2}]";
+        }
+
+        internal double GetNukeDamage(AbsolutePosition targetPoint, double range)
+        {
+            double damage = 0;
+            foreach (var unit in Units)
+            {
+                var distanceFromNuceCenter = unit.GetDistanceTo(targetPoint.X, targetPoint.Y);
+                var damageKoeff = (range - distanceFromNuceCenter) / range;
+                var unitForce = unit.AerialDamage + unit.AerialDefence + unit.GroundDamage + unit.GroundDefence;
+                damage += unitForce * damageKoeff;
+            }
+            return damage;
         }
 
         public void Enable() => IsEnabled = true;

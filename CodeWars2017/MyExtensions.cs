@@ -139,15 +139,15 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var position = units.GetUnitsCenter();
 
             foreach (var unit in units)
-            foreach (var target in targetUnits)
-            {
-                var distance = GetDistanceBetweenUnits(unit, target);
-                if (distance < minDistance)
+                foreach (var target in targetUnits)
                 {
-                    minDistance = distance;
-                    position = new AbsolutePosition(target.X, target.Y);
+                    var distance = GetDistanceBetweenUnits(unit, target);
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        position = new AbsolutePosition(target.X, target.Y);
+                    }
                 }
-            }
             return position;
         }
 
@@ -156,6 +156,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
 
 #region VehicleExtensions
+
+        public static double GetUnitHealthIndex(this Vehicle unit) => unit.Durability / unit.MaxDurability;
+
         public static Vehicle GetMostDistantAmong(this Vehicle me, List<Vehicle> targets)
         {
             //carefully with 0 targets! We can get nuke for own position!
@@ -172,23 +175,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
 
 
-        public static double GetTotalEnergyInRange(this Vehicle targetUnit, Universe universe, double range)
+        public static double GetPotentialNuclearWin(this Vehicle targetUnit, Universe universe, double range)
         {
-            double totalEnergy = 0;
             var myGuys = new List<Vehicle>();
             var enemyGuys = new List<Vehicle>();
             var squaredRange = range * range;
 
+            var targetPoint = new AbsolutePosition(targetUnit.X, targetUnit.Y);
+
+
             foreach (var enemyGuy in universe.OppUnits)
-                if (targetUnit.GetSquaredDistanceTo(enemyGuy) < squaredRange)
+            {
+                var distanceSquaredFromNuceCenter = targetUnit.GetSquaredDistanceTo(enemyGuy);
+                if (distanceSquaredFromNuceCenter < squaredRange)
                     enemyGuys.Add(enemyGuy);
+            }
+
             foreach (var myGuy in universe.MyUnits)
-                if (targetUnit.GetSquaredDistanceTo(myGuy) < squaredRange && targetUnit != myGuy)
+            {
+                var distanceSquaredFromNuceCenter = targetUnit.GetSquaredDistanceTo(myGuy);
+                if (distanceSquaredFromNuceCenter < squaredRange && targetUnit != myGuy)
                     myGuys.Add(myGuy);
+            }
 
-            totalEnergy = new Squad(myGuys).Energy - new Squad(enemyGuys).Energy;
+            var totalEnergyWin = new Squad(enemyGuys).GetNukeDamage(targetPoint, range) - new Squad(myGuys).GetNukeDamage(targetPoint, range);
 
-            return totalEnergy;
+            return totalEnergyWin;
         }
 
 

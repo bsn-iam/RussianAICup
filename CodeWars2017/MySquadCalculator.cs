@@ -61,19 +61,20 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 Vehicle target = null;
                 Vehicle scout = null;
                 double maxNuclearResult = 0;
+                var nulcearRange = universe.Game.TacticalNuclearStrikeRadius;
 
                 foreach (var observation in scoutObservation)
                 {
                     var potentialTarget = observation.Key.GetMostDistantAmong(observation.Value);
-                    var nulcearRange = universe.Game.TacticalNuclearStrikeRadius;
-                    double currentNuclearResult = -potentialTarget.GetTotalEnergyInRange(universe, nulcearRange);
+
+                    double currentNuclearResult = potentialTarget.GetPotentialNuclearWin(universe, nulcearRange);
 
                     if (currentNuclearResult > maxNuclearResult)
                     {
                         maxNuclearResult = currentNuclearResult;
                         scout = observation.Key;
                         target = potentialTarget;
-                        universe.Print($"Expected win in nuke {maxNuclearResult:f2}");
+                        universe.Print($"Max win in nuke {maxNuclearResult:f2}");
                     }
                 }
 
@@ -163,8 +164,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private AbsolutePosition GeneratePositionForScout(Squad squad)
         {
             var scout = squad.Units.FirstOrDefault();
-            var enemyPosition = squad.Units.GetPositionOfNearestTarget(Universe.OppUnits);
-            var distanceFromEnemy = scout.AerialAttackRange * 2.5;
+            var enemyPosition = squad.Units.GetPositionOfNearestTarget(Universe.OppUnits.Where(u => !u.Type.Equals(VehicleType.Arrv)).ToList());
+            var isNukeAvailable = Universe.Player.RemainingNuclearStrikeCooldownTicks == 0;
+
+            var ScoutDistanceKoeff = isNukeAvailable ? 2.5 : 5;
+            var distanceFromEnemy = scout.AerialAttackRange * ScoutDistanceKoeff;
             var distanceToEnemy = scout.GetDistanceTo(enemyPosition.X, enemyPosition.Y);
             var koeff = (distanceToEnemy - distanceFromEnemy) / distanceToEnemy;
             var targetX = scout.X + (enemyPosition.X - scout.X) * koeff;
