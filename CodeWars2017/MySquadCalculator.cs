@@ -11,7 +11,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public List<Squad> SquadList { get; internal set; } =new List<Squad>();
         public List<DeferredAction> DeferredActionList { get; } = new List<DeferredAction>();
         public Queue<IMoveAction> ActionList { get; } = new Queue<IMoveAction>();
-        public Boolean nukeRequested { get; internal set; } = false;
+        public Boolean NukeRequested { get; internal set; } = false;
         public Universe Universe;
         private const int ActionListLength = 6;
         private const double MaxDispersionRelative = 0.9;
@@ -19,43 +19,53 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         internal void RunTick(Universe universe)
         {
-            Universe = universe;
 
-            if (universe.World.TickIndex == 0)
-                StartActionList(Universe);
+            #region UpdateStates
+
+            Universe = universe;
 
             foreach (var squad in SquadList)
                 squad.UpdateState(Universe);
 
-            if (ActionList.Count == 0)
-                universe.Print($"Action list is empty.");
+            #endregion
+
+            if (universe.World.TickIndex == 0)
+                StartActionList(Universe);
+
+            //TODO Extend the sqaud if Nuclear Launch detected, then narrow it.
 
             CheckForNuclearStrike(universe);
 
+            CheckDeferredActionList();
+
             CheckForScoutsAmount();
 
-            CheckDeferredActionList();
+            if (ActionList.Count == 0)
+                universe.Print($"Action list is ready for moves.");
 
             GenerateActions();
         }
 
         private void CheckForScoutsAmount()
         {
-            var scoutsAmount = SquadList.Count(
-                s => s.IsScout &&
-                    (!s.IsCreated ||
-                    s.Units.Any(u => u.Durability != 0)));
+            if (ActionList.Count == 0)
+            {
+                var scoutsAmount = SquadList.Count(
+                    s => s.IsScout &&
+                         (!s.IsCreated ||
+                          s.Units.Any(u => u.Durability != 0)));
 
-            if (scoutsAmount == 0)
-                ActionList.ActionAppointNewScout(SquadList, SquadIdGenerator);
+                if (scoutsAmount < 2)
+                    ActionList.ActionAppointNewScout(SquadList, SquadIdGenerator);
+            }
         }
 
         private void CheckForNuclearStrike(Universe universe)
         {
             if (universe.Player.RemainingNuclearStrikeCooldownTicks != 0)
-                nukeRequested = false;
+                NukeRequested = false;
 
-            if (universe.Player.RemainingNuclearStrikeCooldownTicks == 0 && !nukeRequested)
+            if (universe.Player.RemainingNuclearStrikeCooldownTicks == 0 && !NukeRequested)
             {
                 Dictionary<Vehicle, List<Vehicle>> scoutObservation = universe.MyUnits.GetScoutObservation(universe.OppUnits);
                 Vehicle target = null;
@@ -80,7 +90,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
                 if (scout != null && target != null && maxNuclearResult > 0)
                 {
-                    nukeRequested = true;
+                    NukeRequested = true;
                     ActionList.ActionRequestNuclearStrike(scout, target);
                 }
             }
@@ -115,6 +125,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             if (ActionList.Count == 0)
             {
+                GenerateScoutsPosition();
+
                 var enemy = new Squad(Universe.OppUnits);
                 var me = new Squad(Universe.MyUnits);
                 var aggression = me.Energy / enemy.Energy;
@@ -122,18 +134,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
                 foreach (var squad in SquadList.GetIteratorSquadListActive())
                 {
-                    //CheckForJoin(squad);
-                    if (squad.IsScout)
-                    {
-                        var scout = squad.Units.FirstOrDefault();
-                        if (scout == null)
-                            continue;
-
-                        var requiredPosition = GeneratePositionForScout(squad);
-                        squad.DoAttack(ActionList, requiredPosition);
-                    }
-                        
-
                     if (aggression > 0.85)
                     {
                         //Atack
@@ -161,14 +161,31 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         }
 
+        private void GenerateScoutsPosition()
+        {
+             foreach (var squad in SquadList.GetIteratorSquadListActive())
+             {
+                 //CheckForJoin(squad);
+                 if (squad.IsScout)
+                 {
+                     var scout = squad.Units.FirstOrDefault();
+                     if (scout == null)
+                         continue;
+             
+                     var requiredPosition = GeneratePositionForScout(squad);
+                     squad.DoAttack(ActionList, requiredPosition);
+                 }
+             }
+        }
+
         private AbsolutePosition GeneratePositionForScout(Squad squad)
         {
             var scout = squad.Units.FirstOrDefault();
             var enemyPosition = squad.Units.GetPositionOfNearestTarget(Universe.OppUnits.Where(u => !u.Type.Equals(VehicleType.Arrv)).ToList());
-            var isNukeAvailable = Universe.Player.RemainingNuclearStrikeCooldownTicks == 0;
+            var isNukeAvailable = Universe.Player.RemainingNuclearStrikeCooldownTicks < 30;
 
-            var ScoutDistanceKoeff = isNukeAvailable ? 2.5 : 5;
-            var distanceFromEnemy = scout.AerialAttackRange * ScoutDistanceKoeff;
+            var scoutDistanceKoeff = isNukeAvailable ? 2.5 : 6;
+            var distanceFromEnemy = scout.AerialAttackRange * scoutDistanceKoeff;
             var distanceToEnemy = scout.GetDistanceTo(enemyPosition.X, enemyPosition.Y);
             var koeff = (distanceToEnemy - distanceFromEnemy) / distanceToEnemy;
             var targetX = scout.X + (enemyPosition.X - scout.X) * koeff;

@@ -15,21 +15,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             Universe = universe;
 
-            if (actionList.Count > 0 && CanMove(universe.World.GetMyPlayer()))
+            if (CanMove(universe.Player, actionList))
             {
-                var actionNow = actionList.Dequeue();
-
-                actionNow.Execute(universe);
-                //universe.Print($"Action [{universe.Move.Action}] activated.");
-                //if (!universe.Move.Action.Equals(ActionType.ClearAndSelect))
-                //    universe.Print($"Selection is {universe.GetSelectedUnits().Count} units.");
-                return;
+                var executed = actionList.Dequeue().Execute(universe);
+                
+                while (!executed && CanMove(universe.Player, actionList))
+                    executed = actionList.Dequeue().Execute(universe);
             }
-            Universe.Move.Action = ActionType.None;
+            //Universe.Move.Action = ActionType.None;
         }
 
-
-        public static bool CanMove(Player me) => me.RemainingActionCooldownTicks == 0;
+        public static bool CanMove(Player me, Queue<IMoveAction> actionList) => me.RemainingActionCooldownTicks == 0 && actionList.Any();
 
     }
 }
