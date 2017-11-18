@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 using System.Linq;
 using System.Timers;
@@ -12,9 +13,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
         public List<Vehicle> UnitsMy = new List<Vehicle>();
         public List<Vehicle> UnitsOpp = new List<Vehicle>();
 
-        public Universe Universe { get; set; }
+        public static Universe Universe { get; set; }
         public ActionHandler ActionHandler = new ActionHandler();
-        public SquadCalculator SquadCalculator = new SquadCalculator();
+        public static SquadCalculator SquadCalculator = new SquadCalculator();
+        public static Predictor Predictor = new Predictor();
+        public static SortedList<long, AbsolutePosition> MoveOrder = new SortedList<long, AbsolutePosition>();
 
 
         public void Move(Player me, World world, Game game, Move move)
@@ -22,6 +25,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             
 #if DEBUG
             RunTick(world, game, move, me);
+            DrawTheMap();
 #else
             try
             {
@@ -33,7 +37,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             }
 
 #endif
-
         }
 
         private void RunTick(World world, Game game, Move move, Player player)
@@ -41,6 +44,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             DateTime startTime = DateTime.Now;
             UpdateUnitsStatus(world);
             Universe = new Universe(world, game, UnitsMy, UnitsOpp, move, player);
+            Predictor.RunTick(Universe);
 
             SquadCalculator.RunTick(Universe);
 
@@ -48,8 +52,48 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             DateTime endTime = DateTime.Now;
 
             var duration = (endTime - startTime).TotalMilliseconds;
-            if (duration > 1000)
+            if (duration > 500)
                 Universe.Print($"StepTime {duration:f2}");
+        }
+
+        private static void DrawTheMap()
+        {
+            if (Universe.World.TickIndex == 0)
+            {
+            }
+            Visualizer.Visualizer.CreateForm();
+
+            Visualizer.Visualizer.DrawSince = 0;
+
+            //if (world.TickIndex >= Visualizer.Visualizer.DrawSince)
+            //    Visualizer.Visualizer.DangerPoints = CalculateDangerMap();
+            //else
+            //    Visualizer.Visualizer.DangerPoints = null;
+
+
+            if (Universe.World.TickIndex == 0)
+                Visualizer.Visualizer.LookAt(new Point(Universe.MapConerLeftUp.X, Universe.MapConerLeftUp.Y));
+            if (Universe.World.TickIndex % 2 == 0)
+            {
+                Visualizer.Visualizer.Draw();
+                if (Universe.World.TickIndex >= Visualizer.Visualizer.DrawSince)
+                {
+                    var timer = new Stopwatch();
+                    timer.Reset();
+                    timer.Start();
+                    while (!Visualizer.Visualizer.Done || timer.ElapsedMilliseconds < 13)
+                    {
+                    }
+                    //Universe.Print("Time for visualizer " + timer.ElapsedMilliseconds);
+                    timer.Stop();
+                }
+            }
+
+
+            while (Visualizer.Visualizer.Pause)
+            {
+                // pause here
+            }
         }
 
         private void UpdateUnitsStatus(World world)

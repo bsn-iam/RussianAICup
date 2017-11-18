@@ -363,6 +363,21 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.X = position.X - selectionCenter.X;
             universe.Move.Y = position.Y - selectionCenter.Y;
             //universe.Print($"Action {this} is started.");
+
+
+            var moveOrderList = MyStrategy.MoveOrder;
+            var selectedUnits = universe.GetSelectedUnits();
+            var centralUnit = selectedUnits.GetCentralUnit();
+
+            foreach (var unit in selectedUnits)
+                foreach (var moveOrder in new SortedList<long, AbsolutePosition>(moveOrderList))
+                {
+                    if (moveOrder.Key == unit.Id)
+                        moveOrderList.Remove(moveOrder.Key);
+                }
+            moveOrderList.Add(centralUnit.Id, position);
+
+
             return true;
         }
     }

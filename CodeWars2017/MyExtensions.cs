@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 
 namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
@@ -105,14 +106,15 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         #endregion
 
 
-#region PositionExtensions
-        public static AbsolutePosition GetUnitsCenter(this List<Vehicle> units)
+        #region PositionExtensions
+
+        public static Vehicle GetCentralUnit(this List<Vehicle> units)
         {
             if (!units.Any())
-                return new AbsolutePosition(0, 0);
+                return null;
 
-            if (units.Count == 1) return
-                new AbsolutePosition(units[0].X, units[0].Y);
+            if (units.Count == 1)
+                return units[0];
 
             var dispersionPerUnit = units.GetUnitsDispersionList();
 
@@ -130,7 +132,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             //return position of less distant unit
             var centerUnit = units.First(u => u.Id.Equals(centerUnitId));
-            return new AbsolutePosition(centerUnit.X, centerUnit.Y);
+            return centerUnit;
+        }
+
+        public static AbsolutePosition GetUnitsCenter(this List<Vehicle> units)
+        {
+            var position = units.GetCentralUnit();
+            return position == null ? new AbsolutePosition(0, 0) : new AbsolutePosition(position.X, position.Y);
         }
 
         public static AbsolutePosition GetPositionOfNearestTarget(this List<Vehicle> units, List<Vehicle> targetUnits)
@@ -372,6 +380,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static double GetDistanceBetweenUnits(Vehicle u1, Vehicle u2) =>
             Math.Sqrt((u1.X - u2.X) * (u1.X - u2.X) + (u1.Y - u2.Y) * (u1.Y - u2.Y));
 
+        public static bool Equals(double x, double y)
+        {
+            return Math.Abs(x - y) < Double.Epsilon;
+        }
 
         public static Range GetRange(this AbsolutePosition position, double radius)
         {
@@ -383,7 +395,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return new Range(XLeft, XRight, YTop, YBottom);
         }
 
-
+        public static IEnumerable<Vehicle> GetEnumeration(this List<Vehicle> units)
+        {
+            return new List<Vehicle>(units);
+        }
 
     }
 }

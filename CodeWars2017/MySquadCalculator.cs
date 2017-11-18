@@ -16,6 +16,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private const int ActionListLength = 6;
         private const double MaxDispersionRelative = 0.9;
         private IdGenerator SquadIdGenerator;
+        public int ExpectedTicksToNextUpdate => SquadList.Count(s => s.IsEnabled && s.IsCreated && !s.IsEmpty) * 2;
 
         internal void RunTick(Universe universe)
         {
@@ -181,10 +182,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private AbsolutePosition GeneratePositionForScout(Squad squad)
         {
             var scout = squad.Units.FirstOrDefault();
-            var enemyPosition = squad.Units.GetPositionOfNearestTarget(Universe.OppUnits.Where(u => !u.Type.Equals(VehicleType.Arrv)).ToList());
+
+            var predictedEnemyUnits = MyStrategy.Predictor.Prediction().OppUnits
+                .Where(u => !u.Type.Equals(VehicleType.Arrv)).ToList();
+
+            var enemyPosition = squad.Units.GetPositionOfNearestTarget(predictedEnemyUnits);
             var isNukeAvailable = Universe.Player.RemainingNuclearStrikeCooldownTicks < 30;
 
-            var scoutDistanceKoeff = isNukeAvailable ? 2.5 : 6;
+            var scoutDistanceKoeff = isNukeAvailable ? 3 : 6;
             var distanceFromEnemy = scout.AerialAttackRange * scoutDistanceKoeff;
             var distanceToEnemy = scout.GetDistanceTo(enemyPosition.X, enemyPosition.Y);
             var koeff = (distanceToEnemy - distanceFromEnemy) / distanceToEnemy;
