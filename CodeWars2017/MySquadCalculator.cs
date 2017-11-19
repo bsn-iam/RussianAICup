@@ -138,14 +138,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void GenerateRestUnitsCommand()
         {
-            var enemy = new Squad(Universe.OppUnits);
-            var me = new Squad(Universe.MyUnits);
-            var aggression = me.Energy / enemy.Energy;
-            Universe.Print($"Agression {aggression:f2}, my energy {(me.Energy):f2}, enemy energy {(enemy.Energy):f2}");
+            var aggression = Aggression;
 
             foreach (var squad in SquadList.GetIteratorSquadListActive())
             {
-                if (aggression > 0.85)
+                if (aggression > 1)
                 {
                     //Atack
                     if (squad.Id == (int) Squads.Tanks || squad.Id == (int) Squads.Ifvs)
@@ -167,6 +164,24 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 }
             }
         }
+
+        private double Aggression
+        {
+            get
+            {
+                var persentageToRemove = 3;
+
+                var enemyUnits = Universe.OppUnits.GetClosestUnits(persentageToRemove);
+                var myUnits = Universe.MyUnits.GetClosestUnits(persentageToRemove);
+
+                var enemy = new Squad(enemyUnits);
+                var me = new Squad(myUnits);
+                var aggression = me.Energy / enemy.Energy;
+                Universe.Print($"Agression {aggression:f2}, my energy {(me.Energy):f2}, enemy energy {(enemy.Energy):f2}");
+                return aggression;
+            }
+        }
+
 
         private void GenerateScoutsCommand()
         {

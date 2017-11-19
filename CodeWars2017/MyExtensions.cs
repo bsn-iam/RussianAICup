@@ -227,6 +227,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         #region VehicleListExtension
 
+        public static List<Vehicle> GetClosestUnits(this List<Vehicle> initialList, double persentageToRemove)
+        {
+            List<Vehicle> shrinkedUnits = new List<Vehicle>(initialList);
+            while (shrinkedUnits.Count > initialList.Count * (1 - persentageToRemove / 100))
+                shrinkedUnits.Remove(shrinkedUnits.GetMostDistantUnit());
+
+            return shrinkedUnits;
+        }
 
         public static List<Vehicle> GetCombinedList(this List<Vehicle> units1, List<Vehicle> units2)
         {
