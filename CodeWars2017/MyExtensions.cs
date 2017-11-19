@@ -106,7 +106,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         #endregion
 
 
-        #region PositionExtensions
+#region PositionExtensions
 
         public static Vehicle GetCentralUnit(this List<Vehicle> units)
         {
@@ -225,8 +225,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         #endregion
 
 
-#region VehicleListExtension
+        #region VehicleListExtension
 
+
+        public static List<Vehicle> GetCombinedList(this List<Vehicle> units1, List<Vehicle> units2)
+        {
+            var combinedList = new List<Vehicle>();
+            units1.ForEach(u => combinedList.Add(u));
+            units2.ForEach(u => combinedList.Add(u));
+
+            return combinedList;
+        }
 
         public static double GetUnitsDispersionValue(this List<Vehicle> units)
         {
@@ -306,7 +315,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         #endregion
 
 
-#region SquadListExtensions
+        #region SquadListExtensions
+
+        public static Squad GetSquadByUnit(this List<Squad> squadList, Vehicle unit)
+        {
+            foreach (var groupId in unit.Groups)
+                foreach (var squad in squadList)
+                    if (squad.Id == groupId && squad.IsEnabled)
+                        return squad;
+            return null;
+        }
 
         public static int GetPeriodPerMeeting(this List<Squad> squadList, int squadAlfaId, int squadDeltaId)
         {
@@ -356,6 +374,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             actions.ActionSelectSquad(squad.Id);
             actions.Enqueue(new ActionScaleSelectedSquadToPosition(squad, factor, position, duration));
             squad.IsWaitingForScaling = true;
+            squad.UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
         public static void ActionMoveAndCombine(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
             int newSquadId, List<DeferredAction> deferredActionsList, int tickIndex, int duration)

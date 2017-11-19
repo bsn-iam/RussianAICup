@@ -27,12 +27,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (state.Key < universe.World.TickIndex - 5)
                     WorldStateList.Remove(state.Key);
 
-            WorldStateList.Add(universe.World.TickIndex, new WorldState(new List<Vehicle>(universe.OppUnits), true));
+            WorldStateList.Add(universe.World.TickIndex, new WorldState(new List<Vehicle>(universe.MyUnits), new List<Vehicle>(universe.OppUnits), true));
 
         }
 
-        public WorldState Prediction() =>
-            GetStateOnTick(Universe.World.TickIndex + MyStrategy.SquadCalculator.ExpectedTicksToNextUpdate);
+//        public WorldState Prediction() =>
+//            GetStateOnTick(Universe.World.TickIndex + MyStrategy.SquadCalculator.ExpectedTicksToNextUpdate);
 
         public WorldState GetStateOnTick(int tick)
         {
@@ -47,7 +47,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private WorldState IntegrateTillTick(int tick)
         {
             var predictedOppUnits = new List<Vehicle>();
-            foreach (var unit in Universe.OppUnits)
+            var predictedMyUnits = new List<Vehicle>();
+            var myPlayerId = Universe.World.GetMyPlayer().Id;
+
+            var allRealUnits = Universe.OppUnits.GetCombinedList(Universe.MyUnits);
+
+            foreach (var unit in allRealUnits)
             {
                 var unitSpeed = CalculateUnitSpeed(unit);
 
@@ -57,10 +62,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 var predictedUnit = new Vehicle(unit,
                     new VehicleUpdate(unit.Id, predictedX, predictedY, unit.Durability,
                         unit.RemainingAttackCooldownTicks, unit.IsSelected, unit.Groups));
-                predictedOppUnits.Add(predictedUnit);
+
+                if (unit.PlayerId == myPlayerId)
+                    predictedMyUnits.Add(predictedUnit);
+                else 
+                    predictedOppUnits.Add(predictedUnit);
             }
 
-            return new WorldState(predictedOppUnits, false);
+            return new WorldState(predictedMyUnits, predictedOppUnits, false);
         }
 
         private Speed CalculateUnitSpeed(Vehicle unit)
@@ -74,7 +83,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (stateOld.Value == null)
                 return unitSpeed;
 
-            var unitOld = stateOld.Value.OppUnits.FirstOrDefault(u => u.Id.Equals(unit.Id));
+            var allOldUnits = stateOld.Value.OppUnits.GetCombinedList(stateOld.Value.MyUnits);
+
+            var unitOld = allOldUnits.FirstOrDefault(u => u.Id.Equals(unit.Id));
 
             if (unitOld == null)
                 return unitSpeed;
@@ -93,12 +104,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
     public class WorldState
     {
-        public WorldState(List<Vehicle> oppUnits, bool isRealValue)
+        public WorldState(List<Vehicle> myUnits, List<Vehicle> oppUnits, bool isRealValue)
         {
             OppUnits = oppUnits;
+            MyUnits = myUnits;
             IsRealValue = isRealValue;
         }
 
+        public List<Vehicle> MyUnits { get; set; }
         public List<Vehicle> OppUnits { get; set; }
         public bool IsRealValue { get; set; }
     }

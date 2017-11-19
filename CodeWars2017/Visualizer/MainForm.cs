@@ -13,14 +13,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
         private void buttonZoom_Click(object sender, EventArgs e)
         {
-            Visualizer.Zoom -= 1.0/5;
+            Visualizer.Zoom -= 1.0/10;
             Visualizer.Pause = true;
             Visualizer._draw();
         }
 
         private void buttonUnZoom_Click(object sender, EventArgs e)
         {
-            Visualizer.Zoom += 1.0/5;
+            Visualizer.Zoom += 1.0/10;
             Visualizer.Pause = true;
             Visualizer._draw();
         }

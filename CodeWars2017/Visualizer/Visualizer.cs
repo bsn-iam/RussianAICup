@@ -9,6 +9,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 {
     public class Visualizer
     {
+        #region System
+
         public static void CreateForm()
         {
             if (_form == null)
@@ -29,7 +31,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             }
             catch (Exception e)
             {
-                MyStrategy.Universe.Print(e.Message);
+                MyStrategy.Universe.Print(e.Message + e.StackTrace);
             }
 
         }
@@ -169,6 +171,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             Done = true;
         }
 
+        #endregion
+
         public static void _draw()
         {
             var panel = _form.panel;
@@ -239,13 +243,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             #region Predictions
 
-            var expectedTickForNextUpdate = MyStrategy.Universe.World.TickIndex +
-                                            MyStrategy.SquadCalculator.ExpectedTicksToNextUpdate;
-            var predictedUnits = MyStrategy.Predictor.GetStateOnTick(expectedTickForNextUpdate).OppUnits;
+            var allRealUnits = MyStrategy.Universe.OppUnits.GetCombinedList(MyStrategy.Universe.MyUnits);
 
-            foreach (var predictedUnit  in predictedUnits)
+            foreach (var currectUnit in allRealUnits)
             {
-                foreach (var currectUnit in MyStrategy.Universe.OppUnits)
+                var expectedTickForNextUpdate = MyStrategy.Universe.World.TickIndex;
+                if (currectUnit.PlayerId == MyStrategy.Universe.Player.Id)
+                {
+                    var correspondingSquad = MyStrategy.SquadCalculator.SquadList.GetSquadByUnit(currectUnit);
+                    if (correspondingSquad == null)
+                        continue;
+                    expectedTickForNextUpdate = MyStrategy.Universe.World.TickIndex +
+                                                correspondingSquad.ExpectedTicksToNextUpdate;
+                }
+                else
+                {
+                    // nearestMyUnit = MyStrategy.Universe.MyUnits.
+                    // var correspondingSquad = MyStrategy.SquadCalculator.SquadList.GetSquadByUnit(nearestMyUnit);
+                    // expectedTickForNextUpdate = MyStrategy.Universe.World.TickIndex + correspondingSquad.ExpectedTicksToNextUpdate;
+                    expectedTickForNextUpdate = MyStrategy.Universe.World.TickIndex + 60;
+                }
+                    
+
+                var predictedState = MyStrategy.Predictor.GetStateOnTick(expectedTickForNextUpdate);
+                var allPredictedUnits = predictedState.OppUnits.GetCombinedList(predictedState.MyUnits);
+
+                foreach (var predictedUnit in allPredictedUnits)
                 {
                     if (predictedUnit.Id == currectUnit.Id)
                     {
@@ -265,7 +288,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             {
                 var unit = MyStrategy.Universe.MyUnits.FirstOrDefault(u => u.Id.Equals(order.Key));
                 if (unit!=null)
-                    DrawLine(Color.LightGreen, unit.X, unit.Y, order.Value.X, order.Value.X, 1);
+                    DrawLine(Color.LightGreen, unit.X, unit.Y, order.Value.X, order.Value.Y, 2);
             }
             
 
@@ -484,6 +507,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             }
         }
 
+        public static void DrawEnemyUnit(Color color, Vehicle unit, string label)
+        {
+            FillCircle(color, unit.X, unit.Y, 1);
+            FillCircle(Color.Black, unit.X, unit.Y, 2);
+            // DrawCircle(Color.CornflowerBlue, unit.X, unit.Y, unit.AerialAttackRange);
+            // DrawCircle(Color.RosyBrown, unit.X, unit.Y, unit.GroundAttackRange);
+            DrawText(label, 2, Brushes.Black, unit.X, unit.Y);
+        }
         public static void DrawUnit(Color color, Vehicle unit, string label)
         {
             FillCircle(color, unit.X, unit.Y, 2);

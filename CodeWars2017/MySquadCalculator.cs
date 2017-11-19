@@ -16,7 +16,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private const int ActionListLength = 6;
         private const double MaxDispersionRelative = 0.9;
         private IdGenerator SquadIdGenerator;
-        public int ExpectedTicksToNextUpdate => SquadList.Count(s => s.IsEnabled && s.IsCreated && !s.IsEmpty) * 2;
+        //public int ExpectedTicksToNextUpdate => SquadList.Count(s => s.IsEnabled && s.IsCreated && !s.IsEmpty) * 2;
 
         internal void RunTick(Universe universe)
         {
@@ -114,55 +114,61 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void GenerateActions()
         {
-    
             ShowSquadList();
-
-            if (Universe.World.TickIndex == 50)
-            {
-                ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Tanks), SquadList.GetSquadById((int)Squads.Fighters), SquadIdGenerator.New, false);
-                ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int)Squads.Ifvs), SquadList.GetSquadById((int)Squads.Helicopters), SquadIdGenerator.New, false);
-                ReduceScaleForAll();
-            }
+            //CombineSquadsOnStart();
 
             if (ActionList.Count == 0)
             {
-                GenerateScoutsPosition();
-
-                var enemy = new Squad(Universe.OppUnits);
-                var me = new Squad(Universe.MyUnits);
-                var aggression = me.Energy / enemy.Energy;
-                Universe.Print($"Agression {aggression:f2}, my energy {(me.Energy):f2}, enemy energy {(enemy.Energy):f2}");
-
-                foreach (var squad in SquadList.GetIteratorSquadListActive())
-                {
-                    if (aggression > 0.85)
-                    {
-                        //Atack
-                        if (squad.Id == (int)Squads.Tanks || squad.Id == (int)Squads.Ifvs)
-                            squad.DoAttack(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
-
-
-                        if (squad.Id == (int)Squads.Helicopters)
-                            squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int)Squads.Ifvs));
-                        if (squad.Id == (int)Squads.Fighters)
-                            squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int)Squads.Tanks));
-                        if (squad.Id == (int)Squads.Arrvs)
-                            squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int)Squads.Fighters));
-                    }
-                    else
-                    {
-                        //going to deff
-                        if (!squad.IsScout)
-                            squad.DoAttack(ActionList, Universe.MapConerLeftUp);
-                    }
-
-
-                }
+                GenerateScoutsCommand();
+                GenerateRestUnitsCommand();
             }
-
         }
 
-        private void GenerateScoutsPosition()
+        private void CombineSquadsOnStart()
+        {
+            if (Universe.World.TickIndex == 50)
+            {
+                ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int) Squads.Tanks),
+                    SquadList.GetSquadById((int) Squads.Fighters), SquadIdGenerator.New, false);
+                ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int) Squads.Ifvs),
+                    SquadList.GetSquadById((int) Squads.Helicopters), SquadIdGenerator.New, false);
+                ReduceScaleForAll();
+            }
+        }
+
+        private void GenerateRestUnitsCommand()
+        {
+            var enemy = new Squad(Universe.OppUnits);
+            var me = new Squad(Universe.MyUnits);
+            var aggression = me.Energy / enemy.Energy;
+            Universe.Print($"Agression {aggression:f2}, my energy {(me.Energy):f2}, enemy energy {(enemy.Energy):f2}");
+
+            foreach (var squad in SquadList.GetIteratorSquadListActive())
+            {
+                if (aggression > 0.85)
+                {
+                    //Atack
+                    if (squad.Id == (int) Squads.Tanks || squad.Id == (int) Squads.Ifvs)
+                        squad.DoAttack(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
+
+
+                    if (squad.Id == (int) Squads.Helicopters)
+                        squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int) Squads.Ifvs));
+                    if (squad.Id == (int) Squads.Fighters)
+                        squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int) Squads.Tanks));
+                    if (squad.Id == (int) Squads.Arrvs)
+                        squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int) Squads.Fighters));
+                }
+                else
+                {
+                    //going to deff
+                    if (!squad.IsScout)
+                        squad.DoAttack(ActionList, Universe.MapConerLeftUp);
+                }
+            }
+        }
+
+        private void GenerateScoutsCommand()
         {
              foreach (var squad in SquadList.GetIteratorSquadListActive())
              {
@@ -182,14 +188,18 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private AbsolutePosition GeneratePositionForScout(Squad squad)
         {
             var scout = squad.Units.FirstOrDefault();
+//            Universe.Print($"Scout Position {scout.X}, {scout.Y}");
 
-            var predictedEnemyUnits = MyStrategy.Predictor.Prediction().OppUnits
-                .Where(u => !u.Type.Equals(VehicleType.Arrv)).ToList();
+            var nextUpdateTick = Universe.World.TickIndex + squad.ExpectedTicksToNextUpdate;
+            var predictedWorldState = MyStrategy.Predictor.GetStateOnTick(nextUpdateTick);
+            var predictedEnemyUnits = predictedWorldState.OppUnits.Where(u => !u.Type.Equals(VehicleType.Arrv)).ToList();
 
             var enemyPosition = squad.Units.GetPositionOfNearestTarget(predictedEnemyUnits);
+
             var isNukeAvailable = Universe.Player.RemainingNuclearStrikeCooldownTicks < 30;
 
-            var scoutDistanceKoeff = isNukeAvailable ? 3 : 6;
+//            Universe.Print($"Nearest enemy {enemyPosition.X}, {enemyPosition.Y}");
+            var scoutDistanceKoeff = isNukeAvailable ?  3: 5;
             var distanceFromEnemy = scout.AerialAttackRange * scoutDistanceKoeff;
             var distanceToEnemy = scout.GetDistanceTo(enemyPosition.X, enemyPosition.Y);
             var koeff = (distanceToEnemy - distanceFromEnemy) / distanceToEnemy;
@@ -197,6 +207,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var targetY = scout.Y + (enemyPosition.Y - scout.Y) * koeff;
 
             var requiredPosition = new AbsolutePosition(targetX, targetY);
+
+//            Universe.Print($"Required position {requiredPosition.X}, {requiredPosition.Y}");
+
             return requiredPosition;
         }
 

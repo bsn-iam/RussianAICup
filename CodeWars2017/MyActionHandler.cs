@@ -18,9 +18,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (CanMove(universe.Player, actionList))
             {
                 var executed = actionList.Dequeue().Execute(universe);
-                
+
                 while (!executed && CanMove(universe.Player, actionList))
+                {
                     executed = actionList.Dequeue().Execute(universe);
+                    universe.Print("Executing next.");
+                }
             }
             //Universe.Move.Action = ActionType.None;
         }

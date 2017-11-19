@@ -7,7 +7,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 {
     public class Squad
     {
-        public double Dispersion => Units.GetUnitsDispersionValue();
+
+        #region Properties
 
         public int Id { get; }
 
@@ -25,31 +26,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public bool IsWaitingForScaling { get; internal set; }
         public bool IsScout { get; internal set; } = false;
 
-        public void UpdateState(Universe universe)
-        {
-            Units = universe.MyUnits.Where(u => u.Groups.Contains(Id)).ToList();
+        private int previousCallTick = 0;
+        private int lastCallTick = 0;
 
-            if (!IsCreated)
-            {
-                IsCreated = Units.Any();
-                if (IsCreated)
-                {
-                    StartDispersion = Dispersion;
-                    StartAirEnergy = AirEnergy;
-                    StartGroundEnergy = GroundEnergy;
-                    ScalingTimeDelay = 0;
-                    IsWaitingForScaling = false;
-                }
-            }
+        public int ExpectedTicksToNextUpdate => lastCallTick - previousCallTick;
+        #endregion
 
-            if (ScalingTimeDelay > 0 && !IsWaitingForScaling )
-                 --ScalingTimeDelay;
-
-            IsEmpty = !Units.Any();
-            //if (!this.IsEmpty && this.IsEnabled)
-            //universe.Print("Updating " + this);
-        }
-
+        #region Constructors
 
         public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id, VehicleType type)
         {
@@ -115,29 +98,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         //    IsEnabled = true;
         //}
 
-        internal void DoAttack(Queue<IMoveAction> actions, AbsolutePosition position)
-        {
-            actions.ActionSelectSquad(Id);
-            actions.ActionMoveSelectionToPosition(position);
-        }
+        #endregion
 
-        internal void DoFollow(Queue<IMoveAction> actions, Squad thisSquad, Squad targetSquad)
-        {
-            actions.ActionSelectSquad(thisSquad.Id);
-            actions.ActionMoveSelectionToPosition(targetSquad.Units.GetUnitsCenter());
-        }
+        #region EnergyCalculations
 
-        public double CruisingSpeed
-        {
-            get
-            {
-                double speed = double.MaxValue;
-                foreach (var unit in Units)
-                    if (speed > unit.MaxSpeed)
-                    speed =unit.MaxSpeed;
-                return speed;
-            }
-        }
+        public double Dispersion => Units.GetUnitsDispersionValue();
 
         private double AirDefence
         {
@@ -181,7 +146,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
-        public double Health {
+        public double Health
+        {
             get
             {
                 var healthIndexList = new List<double>();
@@ -199,13 +165,70 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public double Energy => GroundEnergy + AirEnergy;
 
-        public override string ToString()
+        #endregion
+
+        #region Actions
+
+        internal void DoAttack(Queue<IMoveAction> actions, AbsolutePosition position)
         {
-            return $"Squad [{(Squads)Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], " +
-                   $"Dispersion [{Dispersion:f2}, {DispersionRelative:f2}], " +
-                   $"AirEnergy [{AirEnergy:f2}, {AirEnergyRelative:f2}], " +
-                   $"GroundEnergy [{GroundEnergy:f2}, {GroundEnergyRelative:f2}]";
+            actions.ActionSelectSquad(Id);
+            actions.ActionMoveSelectionToPosition(position);
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
+
+        internal void DoFollow(Queue<IMoveAction> actions, Squad thisSquad, Squad targetSquad)
+        {
+            actions.ActionSelectSquad(thisSquad.Id);
+            actions.ActionMoveSelectionToPosition(targetSquad.Units.GetUnitsCenter());
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
+        }
+
+        public void UpdateLastCallTime(int thisCallTick)
+        {
+            previousCallTick = lastCallTick;
+            lastCallTick = thisCallTick;
+        }
+
+
+        #endregion
+
+        public void UpdateState(Universe universe)
+        {
+            Units = universe.MyUnits.Where(u => u.Groups.Contains(Id)).ToList();
+
+            if (!IsCreated)
+            {
+                IsCreated = Units.Any();
+                if (IsCreated)
+                {
+                    StartDispersion = Dispersion;
+                    StartAirEnergy = AirEnergy;
+                    StartGroundEnergy = GroundEnergy;
+                    ScalingTimeDelay = 0;
+                    IsWaitingForScaling = false;
+                }
+            }
+
+            if (ScalingTimeDelay > 0 && !IsWaitingForScaling)
+                --ScalingTimeDelay;
+
+            IsEmpty = !Units.Any();
+            //if (!this.IsEmpty && this.IsEnabled)
+            //universe.Print("Updating " + this);
+        }
+
+        public double CruisingSpeed
+        {
+            get
+            {
+                double speed = double.MaxValue;
+                foreach (var unit in Units)
+                    if (speed > unit.MaxSpeed)
+                    speed =unit.MaxSpeed;
+                return speed;
+            }
+        }
+
 
         internal double GetNukeDamage(AbsolutePosition targetPoint, double range)
         {
@@ -224,6 +247,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
 
         public void Disable() => IsEnabled = false;
+
+        public override string ToString()
+        {
+            return $"Squad [{(Squads)Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], " +
+                   $"Dispersion [{Dispersion:f2}, {DispersionRelative:f2}], " +
+                   $"AirEnergy [{AirEnergy:f2}, {AirEnergyRelative:f2}], " +
+                   $"GroundEnergy [{GroundEnergy:f2}, {GroundEnergyRelative:f2}]";
+        }
 
     }
 }

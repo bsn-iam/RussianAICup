@@ -17,8 +17,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public static void ActionSelectAll(this Queue<IMoveAction> moveActions) =>
             moveActions.Enqueue(new ActionSelectAll());
-//        public static void ActionSelectOneUnit(this Queue<IMoveAction> moveActions, Vehicle unit) =>
-//            moveActions.Enqueue(new ActionSelectOneUnit(unit));
 
         public static void ActionSelectVenicleType(this Queue<IMoveAction> moveActions, VehicleType type) =>
             moveActions.Enqueue(new ActionSelectVenicleType(type));
@@ -215,9 +213,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             actions.ActionSelectSquad(squadAlfaId);
             actions.ActionMoveSelectionToPosition(meetingPoint);
+            squadList.GetSquadById(squadAlfaId).UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
 
             actions.ActionSelectSquad(squadDeltaId);
             actions.ActionMoveSelectionToPosition(meetingPoint);
+            squadList.GetSquadById(squadDeltaId).UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
             return true;
         }
     }
@@ -359,14 +359,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return false;
             }
 
-            universe.Move.Action = ActionType.Move;
-            universe.Move.X = position.X - selectionCenter.X;
-            universe.Move.Y = position.Y - selectionCenter.Y;
-            //universe.Print($"Action {this} is started.");
+
 
 
             var moveOrderList = MyStrategy.MoveOrder;
             var selectedUnits = universe.GetSelectedUnits();
+            if (!selectedUnits.Any())
+            {
+                universe.Print("Can avoid the movement. Selected unit is absent or dead.");
+                return false;
+            }
             var centralUnit = selectedUnits.GetCentralUnit();
 
             foreach (var unit in selectedUnits)
@@ -377,7 +379,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 }
             moveOrderList.Add(centralUnit.Id, position);
 
-
+            universe.Move.Action = ActionType.Move;
+            universe.Move.X = position.X - selectionCenter.X;
+            universe.Move.Y = position.Y - selectionCenter.Y;
+            //universe.Print($"Action {this} is started.");
             return true;
         }
     }
