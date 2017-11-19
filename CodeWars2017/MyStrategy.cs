@@ -25,7 +25,35 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             
 #if DEBUG
             RunTick(world, game, move, me);
-            DrawTheMap();
+
+            if (Universe.World.TickIndex == 0)
+            {
+                Visualizer.Visualizer.CreateForm();
+                Visualizer.Visualizer.DrawSince = 0;
+                Visualizer.Visualizer.LookAt(new Point(Universe.MapConerLeftUp.X, Universe.MapConerLeftUp.Y));
+            }
+
+            if (Universe.World.TickIndex % 1 == 0)
+            {
+                Visualizer.Visualizer.Draw();
+                if (Universe.World.TickIndex >= Visualizer.Visualizer.DrawSince)
+                {
+                    var timer = new Stopwatch();
+                    timer.Reset();
+                    timer.Start();
+                    while (!Visualizer.Visualizer.Done || timer.ElapsedMilliseconds < 13)
+                    {
+                    }
+                    //Universe.Print("Time for visualizer " + timer.ElapsedMilliseconds);
+                    timer.Stop();
+                }
+            }
+
+
+            while (Visualizer.Visualizer.Pause)
+            {
+                // pause here
+            }
 #else
             try
             {
@@ -54,46 +82,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             var duration = (endTime - startTime).TotalMilliseconds;
             if (duration > 500)
                 Universe.Print($"StepTime {duration:f2}");
-        }
-
-        private static void DrawTheMap()
-        {
-            if (Universe.World.TickIndex == 0)
-            {
-            }
-            Visualizer.Visualizer.CreateForm();
-
-            Visualizer.Visualizer.DrawSince = 0;
-
-            //if (world.TickIndex >= Visualizer.Visualizer.DrawSince)
-            //    Visualizer.Visualizer.DangerPoints = CalculateDangerMap();
-            //else
-            //    Visualizer.Visualizer.DangerPoints = null;
-
-
-            if (Universe.World.TickIndex == 0)
-                Visualizer.Visualizer.LookAt(new Point(Universe.MapConerLeftUp.X, Universe.MapConerLeftUp.Y));
-            if (Universe.World.TickIndex % 2 == 0)
-            {
-                Visualizer.Visualizer.Draw();
-                if (Universe.World.TickIndex >= Visualizer.Visualizer.DrawSince)
-                {
-                    var timer = new Stopwatch();
-                    timer.Reset();
-                    timer.Start();
-                    while (!Visualizer.Visualizer.Done || timer.ElapsedMilliseconds < 13)
-                    {
-                    }
-                    //Universe.Print("Time for visualizer " + timer.ElapsedMilliseconds);
-                    timer.Stop();
-                }
-            }
-
-
-            while (Visualizer.Visualizer.Pause)
-            {
-                // pause here
-            }
         }
 
         private void UpdateUnitsStatus(World world)
