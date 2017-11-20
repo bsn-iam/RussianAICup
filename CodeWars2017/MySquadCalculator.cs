@@ -203,7 +203,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private AbsolutePosition GeneratePositionForScout(Squad squad)
         {
             var scout = squad.Units.FirstOrDefault();
-//            Universe.Print($"Scout Position {scout.X}, {scout.Y}");
 
             var nextUpdateTick = Universe.World.TickIndex + squad.ExpectedTicksToNextUpdate;
             var predictedWorldState = MyStrategy.Predictor.GetStateOnTick(nextUpdateTick);
@@ -211,10 +210,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             var enemyPosition = squad.Units.GetPositionOfNearestTarget(predictedEnemyUnits);
 
-            var isNukeAvailable = Universe.Player.RemainingNuclearStrikeCooldownTicks < 30;
-
-//            Universe.Print($"Nearest enemy {enemyPosition.X}, {enemyPosition.Y}");
-            var scoutDistanceKoeff = isNukeAvailable ?  3: 5;
+            //            var isCloseDistance = Universe.Player.RemainingNuclearStrikeCooldownTicks < 30 || Universe.Player.nuc ;
+            // var scoutDistanceKoeff = isCloseDistance ?  3: 5;
+            var scoutDistanceKoeff = 3;
             var distanceFromEnemy = scout.AerialAttackRange * scoutDistanceKoeff;
             var distanceToEnemy = scout.GetDistanceTo(enemyPosition.X, enemyPosition.Y);
             var koeff = (distanceToEnemy - distanceFromEnemy) / distanceToEnemy;
@@ -223,7 +221,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             var requiredPosition = new AbsolutePosition(targetX, targetY);
 
-//            Universe.Print($"Required position {requiredPosition.X}, {requiredPosition.Y}");
 
             return requiredPosition;
         }

@@ -17,6 +17,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
         public ActionHandler ActionHandler = new ActionHandler();
         public static SquadCalculator SquadCalculator = new SquadCalculator();
         public static Predictor Predictor = new Predictor();
+        public static BonusMapCalculator BonusCalculator = new BonusMapCalculator();
         public static SortedList<long, AbsolutePosition> MoveOrder = new SortedList<long, AbsolutePosition>();
 
 
@@ -25,7 +26,22 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             
 #if DEBUG
             RunTick(world, game, move, me);
-
+            /////----------
+            BonusCalculator.RunTick(Universe);
+             //var bonusMap = MyStrategy.BonusCalculator.GenerateMap();
+             //var tileList = bonusMap.TransferToTileList();
+             //double tileMaxValue = Double.MaxValue;
+             //double tileMinValue = 0;
+             //
+             //foreach (var tile in tileList)
+             //{
+             //    if (tile.Value > tileMaxValue)
+             //        tileMaxValue = tile.Value;
+             //    if (tile.Value < tileMinValue)
+             //        tileMinValue = tile.Value;
+             //
+             //}
+            //----------
             if (Universe.World.TickIndex == 0)
             {
                 Visualizer.Visualizer.CreateForm();

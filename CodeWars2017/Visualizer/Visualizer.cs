@@ -95,7 +95,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
         public static List<object[]> SegmentsDrawQueue = new List<object[]>();
         public static List<Tuple<Point, double>> DangerPoints;
-        public static Dictionary<long, Point[]> Projectiles = new Dictionary<long, Point[]>();
+        public static Dictionary<long, Point[]>
+            Projectiles = new Dictionary<long, Point[]>();
 
         public class Color01
         {
@@ -136,20 +137,20 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             new Color01(0, 1, 0),// green
         };
 
-        static Color01 _grad(Color01[] colors, double x)
-        {
-            var delta = 1.0 / (colors.Length - 1);
-            for (var i = 0; i < colors.Length - 1; i++)
-            {
-                var left = delta*i;
-                var right = delta * (i + 1);
-                if (left <= x && x <= right)
-                {
-                    return _grad2(colors[i], colors[i + 1], (x - left) * (colors.Length - 1));
-                }
-            }
-            throw new Exception("wrong x ranges");
-        }
+//        public static Color01 Gradient(Color01[] colors, double x)
+//        {
+//            var delta = 1.0 / (colors.Length - 1);
+//            for (var i = 0; i < colors.Length - 1; i++)
+//            {
+//                var left = delta*i;
+//                var right = delta * (i + 1);
+//                if (left <= x && x <= right)
+//                {
+//                    return _grad2(colors[i], colors[i + 1], (x - left) * (colors.Length - 1));
+//                }
+//            }
+//            //throw new Exception("wrong x ranges");
+//        }
 
         public static int DrawSince { get; set; } = 0;
 
@@ -195,6 +196,34 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             {
                 FillCircle(Color.White, unit.X, unit.Y, unit.VisionRange);
             }
+            #endregion
+
+            #region BonusMap
+
+            var bonusMap = MyStrategy.BonusCalculator.GenerateMap();
+            var tileList = bonusMap.TransferToTileList();
+            double tileMaxValue = 0;
+            double tileMinValue = Double.MaxValue;
+            
+            foreach (var tile in tileList)
+            {
+                if (tile.Value > tileMaxValue)
+                    tileMaxValue = tile.Value;
+                if (tile.Value < tileMinValue)
+                    tileMinValue = tile.Value;
+            
+            }
+            
+           // var colors = new Color01[] { new Color01(0, 0, 0), new Color01(100, 100, 100), new Color01(254, 254, 254) };
+            
+            foreach (var tile in tileList)
+            {
+                //var colors01 = Gradient(colors, tile.Value);
+            
+                //FillRect(colors01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, Tile.Size, Tile.Size);
+                FillRect(new Color01(254* tile.Value/ tileMaxValue, 254 * tile.Value / tileMaxValue, 254 * tile.Value / tileMaxValue).ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, Tile.Size, Tile.Size);
+            }
+
             #endregion
 
             #region UnitsDraw
