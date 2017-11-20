@@ -205,10 +205,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             {
                 var tileList = bonusMap.Value.GetTileList();
 
-                foreach (var tile in tileList) { 
-                    var color01 = new Color01(1-tile.Value, 1-tile.Value, 1-tile.Value);
-                    FillRect(color01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size, tile.Size);
-                }
+                foreach (var tile in tileList)
+                    if (tile.Value != 0)
+                    { 
+                        var color01 = new Color01(tile.Value, 0, 0);
+                        FillRect(color01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
+                    }
             }
 
             // var colors = new Color01[] { new Color01(0, 0, 0), new Color01(100, 100, 100), new Color01(254, 254, 254) };
