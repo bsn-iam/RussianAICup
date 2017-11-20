@@ -129,4 +129,24 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public void Remove(int id) => squadNumbers.Remove(id);
     }
+
+    public class Tile
+    {
+        public Tile(Point centerPosition, double size, double value)
+        {
+            CenterPosition = centerPosition;
+            Value = value;
+            Size = size;
+        }
+
+        public Point CenterPosition { get; set; }
+        public double Value { get; set; }
+        public double Size { get; set; }
+    }
+
+    public class BonusMap
+    {
+        //public const double MapSize = 1024;
+        public double[,] Table = new double[BonusMapCalculator.MapSize, BonusMapCalculator.MapSize];
+    }
 }

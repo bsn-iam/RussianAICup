@@ -16,6 +16,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private const int ActionListLength = 6;
         private const double MaxDispersionRelative = 0.9;
         private IdGenerator SquadIdGenerator;
+
+        private BonusMapCalculator BonusCalculator;
         //public int ExpectedTicksToNextUpdate => SquadList.Count(s => s.IsEnabled && s.IsCreated && !s.IsEmpty) * 2;
 
         internal void RunTick(Universe universe)
@@ -24,6 +26,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             #region UpdateStates
 
             Universe = universe;
+            BonusCalculator = MyStrategy.BonusCalculator;
 
             foreach (var squad in SquadList)
                 squad.UpdateState(Universe);
@@ -193,11 +196,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                      var scout = squad.Units.FirstOrDefault();
                      if (scout == null)
                          continue;
-             
                      var requiredPosition = GeneratePositionForScout(squad);
                      squad.DoAttack(ActionList, requiredPosition);
-                 }
-             }
+
+
+                    //var bonusMap = BonusCalculator.GenerateMap(squad);
+
+                }
+            }
         }
 
         private AbsolutePosition GeneratePositionForScout(Squad squad)

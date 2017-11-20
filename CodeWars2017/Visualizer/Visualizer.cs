@@ -200,29 +200,25 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             #region BonusMap
 
-            var bonusMap = MyStrategy.BonusCalculator.GenerateMap();
-            var tileList = bonusMap.TransferToTileList();
-            double tileMaxValue = 0;
-            double tileMinValue = Double.MaxValue;
-            
-            foreach (var tile in tileList)
+            var bonusMap = MyStrategy.BonusCalculator.BonusMapList.FirstOrDefault();
+            if (bonusMap.Value != null)
             {
-                if (tile.Value > tileMaxValue)
-                    tileMaxValue = tile.Value;
-                if (tile.Value < tileMinValue)
-                    tileMinValue = tile.Value;
-            
+                var tileList = bonusMap.Value.GetTileList();
+
+                foreach (var tile in tileList) { 
+                    var color01 = new Color01(1-tile.Value, 1-tile.Value, 1-tile.Value);
+                    FillRect(color01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size, tile.Size);
+                }
             }
-            
-           // var colors = new Color01[] { new Color01(0, 0, 0), new Color01(100, 100, 100), new Color01(254, 254, 254) };
-            
-            foreach (var tile in tileList)
-            {
-                //var colors01 = Gradient(colors, tile.Value);
-            
-                //FillRect(colors01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, Tile.Size, Tile.Size);
-                FillRect(new Color01(254* tile.Value/ tileMaxValue, 254 * tile.Value / tileMaxValue, 254 * tile.Value / tileMaxValue).ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, Tile.Size, Tile.Size);
-            }
+
+            // var colors = new Color01[] { new Color01(0, 0, 0), new Color01(100, 100, 100), new Color01(254, 254, 254) };
+
+//            foreach (var tile in tileList)
+//            {
+//                //var colors01 = Gradient(colors, tile.Value);
+//            
+//                //FillRect(colors01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, Tile.Size, Tile.Size);
+//            }
 
             #endregion
 
@@ -322,6 +318,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             
 
             #endregion
+
+
+
+
+
 
             #region Something
 
