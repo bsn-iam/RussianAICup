@@ -21,20 +21,23 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public BonusMap GenerateMap(Squad squad)
         {
+            var squadCenter = squad.Units.GetUnitsCenter();
             List<long> squadIds = new List<long>();
             foreach (var unit in squad.Units)
                 squadIds.Add(unit.Id);
 
-            foreach (var map in new SortedList<int, BonusMap>(BonusMapList))
-                if (map.Key == squad.Id)
-                    BonusMapList.Remove(map.Key);
+            ClearBonusMapList(squad);
 
-            var allUnits = Universe.MyUnits.GetCombinedList(Universe.OppUnits);
-            var aeroCollision = GenerateMap(allUnits.Where(u => u.IsAerial && !squadIds.Contains(u.Id)).ToList(), 5, 100);
+            var predictedWorldState = MyStrategy.Predictor.GetStateOnTick(Universe.World.TickIndex + squad.ExpectedTicksToNextUpdate);
+            var allUnits = predictedWorldState.MyUnits.GetCombinedList(predictedWorldState.OppUnits);
+
+//            var aeroCollisionMap = GetAeroCollisionMap(allUnits, squadIds, squadCenter);
+            var aeroDangerMap = GetAeroDangerMap(allUnits, squadIds, squadCenter);
+
             //var groundCollision = GenerateMap(allUnits.Where(u => !u.IsAerial && !squadIds.Contains(u.Id)).ToList(), 10, MapPointsAmount);
 
 
-            var resultingMap = aeroCollision;
+            var resultingMap = aeroDangerMap;
 
             resultingMap.Trim();
 
@@ -45,50 +48,88 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return resultingMap;
         }
 
-        private BonusMap GenerateMap(List<Vehicle> units, double maxValueDistance, double zeroValueDistance)
+        private void ClearBonusMapList(Squad squad)
         {
+            foreach (var map in new SortedList<int, BonusMap>(BonusMapList))
+                if (map.Key == squad.Id)
+                    BonusMapList.Remove(map.Key);
+        }
+
+        private BonusMap GetAeroCollisionMap(List<Vehicle> allUnits, List<long> squadIds, AbsolutePosition squadCenter)
+        {
+            const double affectedRange = 300;
+            var unitsForMap = allUnits.Where(
+                u => u.IsAerial &&
+                     !squadIds.Contains(u.Id) &&
+                     (u.X - squadCenter.X) < affectedRange &&
+                     (u.Y - squadCenter.Y) < affectedRange
+            ).ToList();
             var map = new BonusMap();
 
-            foreach (var unit in units)
-            {
-                for (int i = 0; i < MapPointsAmount; i++)
-                    for (int j = 0; j < MapPointsAmount; j++)
-                    {
-                        var distance = unit.GetDistanceTo(i * SizeWorldMapKoeff, j * SizeWorldMapKoeff);
-                        if (distance <= maxValueDistance)
-                            map.Table[i, j] += 1;
-                        if (distance > maxValueDistance && distance < zeroValueDistance)
-                            map.Table[i, j] += distance / maxValueDistance;
-                        map.Table[i, j] = Math.Max(map.Table[i, j], 1);
+            foreach (var unit in unitsForMap)
+                map.AddUnitCalculation(unit, 5, 1, 100);
 
-                    }
-            }
+            map.Trim();
             return map;
         }
 
-        
+        private BonusMap GetAeroDangerMap(List<Vehicle> allUnits, List<long> squadIds, AbsolutePosition squadCenter)
+        {
+            const double affectedRange = 300;
+            var unitsForMap = allUnits.Where(
+                u => !squadIds.Contains(u.Id) &&
+                u.PlayerId != Universe.Player.Id &&
+                     (u.X - squadCenter.X) < affectedRange &&
+                     (u.Y - squadCenter.Y) < affectedRange
+            ).ToList();
+
+            var map = new BonusMap();
+            foreach (var unit in unitsForMap)
+                map.AddUnitCalculation(unit, unit.AerialAttackRange, unit.AerialDamage, 1000);
+
+            map.Trim();
+            return map;
+        }
+
     }
 
-
+    #region BonusMapExtensions
     public static class BonusMapExtensions
     {
+        public static void AddUnitCalculation(this BonusMap map, Vehicle unit, double maxValueDistance, double maxValue, double zeroValueDistance)
+        {
+            var maxValueDistanceSquared = maxValueDistance* maxValueDistance;
+
+            for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
+            for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
+            {
+                var distanceSquared = unit.GetSquaredDistanceTo(i * BonusMapCalculator.SizeWorldMapKoeff, j * BonusMapCalculator.SizeWorldMapKoeff);
+                if (distanceSquared <= maxValueDistanceSquared)
+                    map.Table[i, j] = Math.Max(maxValue, map.Table[i, j]);
+                if (distanceSquared > maxValueDistanceSquared && distanceSquared < zeroValueDistance)
+                    map.Table[i, j] = Math.Max(maxValue - ((distanceSquared - maxValueDistanceSquared) / zeroValueDistance), map.Table[i, j]);
+            }
+        }
+
         public static void Trim(this BonusMap map)
         {
-            double maxValue = Double.MinValue;
-            
+            double maxValue = Double.Epsilon;
+
+            //find max value of the map
             for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
             for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
                 if (map.Table[i, j] > maxValue)
                     maxValue = map.Table[i, j];
 
+            //scale map to range [0, 1]
             for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
             for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
             {
                 map.Table[i, j] = map.Table[i, j] / maxValue;
-                if (map.Table[i, j] > 1 || map.Table[i, j] < 0)
+                if (map.Table[i, j] > 1 || map.Table[i, j] < 0 || Double.IsNaN(map.Table[i, j]))
                     throw new Exception("Wrong map trim.");
             }
-                
+
         }
 
         public static IEnumerable<Tile> GetTileList(this BonusMap map)
@@ -103,28 +144,15 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 tileList.Add(new Tile(tileCenter, tileWidth, map.Table[i, j]));
                 if (map.Table[i, j] > 1 || map.Table[i, j] < 0)
                     throw new Exception("Wrong tile trim.");
-                }
+            }
 
             return tileList;
         }
 
-        //public static IEnumerable<Tile> TransferToTileList(this BonusMap map)
-        //{
-        //    var tileList = new List<Tile>();
-        //    for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i = i + Tile.Size)
-        //    for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j = j + Tile.Size)
-        //    {
-        //        double tileValue = 0;
-        //        for (int tilei = i; tilei < i + Tile.Size; tilei++)
-        //            for (int tilej = j; tilej < j + Tile.Size; tilej++)
-        //            {
-        //                tileValue += map.Table[tilei, tilej];
-        //            }
-        //        var tileCenter = new Point(i + Tile.Size / 2, j + Tile.Size / 2);
-        //        tileList.Add(new Tile(tileCenter, tileValue));
-        //    }
-        //
-        //    return tileList;
-        //}
     }
+
+    #endregion
+
+
+
 }

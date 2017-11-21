@@ -208,8 +208,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                 foreach (var tile in tileList)
                     if (tile.Value != 0)
                     { 
-                        var color01 = new Color01(tile.Value, 0, 0);
+                        var color01 = new Color01(1, 1-tile.Value, 1-tile.Value);
                         FillRect(color01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
+                        //DrawText($"{tile.Value:f2}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
                     }
             }
 

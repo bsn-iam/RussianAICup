@@ -26,22 +26,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             
 #if DEBUG
             RunTick(world, game, move, me);
-            /////----------
-            BonusCalculator.RunTick(Universe);
-             //var bonusMap = MyStrategy.BonusCalculator.GenerateMap();
-             //var tileList = bonusMap.TransferToTileList();
-             //double tileMaxValue = Double.MaxValue;
-             //double tileMinValue = 0;
-             //
-             //foreach (var tile in tileList)
-             //{
-             //    if (tile.Value > tileMaxValue)
-             //        tileMaxValue = tile.Value;
-             //    if (tile.Value < tileMinValue)
-             //        tileMinValue = tile.Value;
-             //
-             //}
-            //----------
+
             if (Universe.World.TickIndex == 0)
             {
                 Visualizer.Visualizer.CreateForm();
@@ -49,7 +34,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
                 Visualizer.Visualizer.LookAt(new Point(Universe.MapConerLeftUp.X, Universe.MapConerLeftUp.Y));
             }
 
-            if (Universe.World.TickIndex % 1 == 0)
+            if (Universe.World.TickIndex % 2 == 0)
             {
                 Visualizer.Visualizer.Draw();
                 if (Universe.World.TickIndex >= Visualizer.Visualizer.DrawSince)
@@ -88,11 +73,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             DateTime startTime = DateTime.Now;
             UpdateUnitsStatus(world);
             Universe = new Universe(world, game, UnitsMy, UnitsOpp, move, player);
+
             Predictor.RunTick(Universe);
-
+            BonusCalculator.RunTick(Universe);
             SquadCalculator.RunTick(Universe);
-
             ActionHandler.RunTick(Universe, SquadCalculator.ActionList);
+
             DateTime endTime = DateTime.Now;
 
             var duration = (endTime - startTime).TotalMilliseconds;
