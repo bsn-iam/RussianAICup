@@ -184,9 +184,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             panel.Image = drawArea;
             _graphics = Graphics.FromImage(drawArea);
 
-            var tar = MyStrategy.Universe.MyUnits.GetEnumeration().FirstOrDefault(x => x.Id.ToString() == _form.lookAtTextBox.Text.Trim());
-            if (tar != null)
-                LookAt(new Point(tar));
+            var lookAtSquadId = MyStrategy.SquadCalculator.SquadList.FirstOrDefault(s => s.Id.ToString() == _form.lookAtTextBox.Text.Trim());
+            if (lookAtSquadId != null)
+            {
+                var centralUnit = lookAtSquadId.Units.GetCentralUnit();
+                if (centralUnit != null)
+                    LookAt(new Point(centralUnit));
+            }
 
             #region WarFog
 
@@ -200,28 +204,19 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             #region BonusMap
 
-            var bonusMap = MyStrategy.BonusCalculator.BonusMapList.FirstOrDefault();
+            var bonusMap = MyStrategy.BonusCalculator.BonusMapList.FirstOrDefault(m => m.Key.ToString() == _form.mapIdTextBox.Text.Trim());
             if (bonusMap.Value != null)
             {
                 var tileList = bonusMap.Value.GetTileList();
 
                 foreach (var tile in tileList)
-                    if (tile.Value != 0)
+                    if (Math.Abs(tile.Value) > Double.Epsilon)
                     { 
                         var color01 = new Color01(1, 1-tile.Value, 1-tile.Value);
                         FillRect(color01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
-                        //DrawText($"{tile.Value:f2}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
+                        //DrawText($"{tile.Value:f4}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
                     }
             }
-
-            // var colors = new Color01[] { new Color01(0, 0, 0), new Color01(100, 100, 100), new Color01(254, 254, 254) };
-
-//            foreach (var tile in tileList)
-//            {
-//                //var colors01 = Gradient(colors, tile.Value);
-//            
-//                //FillRect(colors01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, Tile.Size, Tile.Size);
-//            }
 
             #endregion
 
@@ -325,7 +320,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
 
 
-
+////
 
             #region Something
 

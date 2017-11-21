@@ -106,7 +106,9 @@
     <Compile Include="Visualizer\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Visualizer\MainForm.Designer.cs" />
+    <Compile Include="Visualizer\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Visualizer\Visualizer.cs" />
   </ItemGroup>
   <ItemGroup>

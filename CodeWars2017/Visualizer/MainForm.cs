@@ -44,5 +44,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
         {
 
         }
+
+        private void mapIdTextBox_TextChanged(object sender, EventArgs e)
+        {
+        }
     }
 }

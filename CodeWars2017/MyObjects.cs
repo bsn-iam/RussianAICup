@@ -146,7 +146,19 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
     public class BonusMap
     {
-        //public const double MapPointsAmount = 1024;
         public double[,] Table = new double[BonusMapCalculator.MapPointsAmount, BonusMapCalculator.MapPointsAmount];
+        public MapType MapType { get; }
+        public bool IsPositive { get;  set; }
+        public double Weight { get;  set; }
+
+        public BonusMap(MapType mapType)
+        {
+            this.MapType = mapType;
+        }
+
+        public BonusMap()
+        {
+        }
+
     }
 }

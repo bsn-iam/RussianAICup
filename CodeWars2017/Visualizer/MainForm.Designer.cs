@@ -1,4 +1,6 @@
-﻿namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
+﻿using System;
+
+namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 {
     public partial class MainForm
     {
@@ -38,6 +40,9 @@
             this.cellsCheckBox = new System.Windows.Forms.CheckBox();
             this.gradCheckBox = new System.Windows.Forms.CheckBox();
             this.lookAtTextBox = new System.Windows.Forms.TextBox();
+            this.mapIdTextBox = new System.Windows.Forms.TextBox();
+            this.lookAtLabel = new System.Windows.Forms.Label();
+            this.MapIdLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.panel)).BeginInit();
             this.SuspendLayout();
             // 
@@ -47,9 +52,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel.BackColor = System.Drawing.Color.White;
-            this.panel.Location = new System.Drawing.Point(61, 12);
+            this.panel.Location = new System.Drawing.Point(61, 1);
             this.panel.Name = "panel";
-            this.panel.Size = new System.Drawing.Size(1053, 855);
+            this.panel.Size = new System.Drawing.Size(1063, 1020);
             this.panel.TabIndex = 0;
             this.panel.TabStop = false;
             // 
@@ -135,18 +140,48 @@
             // 
             // lookAtTextBox
             // 
-            this.lookAtTextBox.Location = new System.Drawing.Point(3, 236);
+            this.lookAtTextBox.Location = new System.Drawing.Point(3, 253);
             this.lookAtTextBox.Name = "lookAtTextBox";
             this.lookAtTextBox.Size = new System.Drawing.Size(52, 20);
             this.lookAtTextBox.TabIndex = 9;
-            this.lookAtTextBox.Text = "1";
+            this.lookAtTextBox.Text = "10";
             this.lookAtTextBox.TextChanged += new System.EventHandler(this.lookAtTextBox_TextChanged);
+            // 
+            // mapIdTextBox
+            // 
+            this.mapIdTextBox.Location = new System.Drawing.Point(3, 292);
+            this.mapIdTextBox.Name = "mapIdTextBox";
+            this.mapIdTextBox.Size = new System.Drawing.Size(52, 20);
+            this.mapIdTextBox.TabIndex = 10;
+            this.mapIdTextBox.Text = "1";
+            this.mapIdTextBox.TextChanged += new System.EventHandler(this.mapIdTextBox_TextChanged);
+            // 
+            // lookAtLabel
+            // 
+            this.lookAtLabel.AutoSize = true;
+            this.lookAtLabel.Location = new System.Drawing.Point(3, 237);
+            this.lookAtLabel.Name = "lookAtLabel";
+            this.lookAtLabel.Size = new System.Drawing.Size(47, 13);
+            this.lookAtLabel.TabIndex = 11;
+            this.lookAtLabel.Text = "SquadId";
+            // 
+            // MapIdLabel
+            // 
+            this.MapIdLabel.AutoSize = true;
+            this.MapIdLabel.Location = new System.Drawing.Point(8, 276);
+            this.MapIdLabel.Name = "MapIdLabel";
+            this.MapIdLabel.Size = new System.Drawing.Size(37, 13);
+            this.MapIdLabel.TabIndex = 12;
+            this.MapIdLabel.Text = "MapId";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1126, 1024);
+            this.Controls.Add(this.MapIdLabel);
+            this.Controls.Add(this.lookAtLabel);
+            this.Controls.Add(this.mapIdTextBox);
             this.Controls.Add(this.lookAtTextBox);
             this.Controls.Add(this.gradCheckBox);
             this.Controls.Add(this.cellsCheckBox);
@@ -165,6 +200,7 @@
 
         }
 
+
         #endregion
 
         public System.Windows.Forms.PictureBox panel;
@@ -177,5 +213,8 @@
         public System.Windows.Forms.CheckBox cellsCheckBox;
         public System.Windows.Forms.CheckBox gradCheckBox;
         public System.Windows.Forms.TextBox lookAtTextBox;
+        public System.Windows.Forms.TextBox mapIdTextBox;
+        private System.Windows.Forms.Label lookAtLabel;
+        private System.Windows.Forms.Label MapIdLabel;
     }
 }
