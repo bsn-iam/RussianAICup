@@ -145,7 +145,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             foreach (var squad in SquadList.GetIteratorSquadListActive())
             {
-                if (aggression > 1)
+                if (aggression > 1.2)
                 {
                     //Atack
                     if (squad.Id == (int) Squads.Tanks || squad.Id == (int) Squads.Ifvs)
@@ -172,7 +172,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             get
             {
-                var persentageToRemove = 3;
+                var persentageToRemove = 2;
 
                 var enemyUnits = Universe.OppUnits.GetClosestUnits(persentageToRemove);
                 var myUnits = Universe.MyUnits.GetClosestUnits(persentageToRemove);
@@ -200,7 +200,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                      squad.DoAttack(ActionList, requiredPosition);
 
 
-                    var bonusMap = BonusCalculator.GenerateMap(squad);
+                    //var bonusMap = BonusCalculator.GenerateMap(squad);
 
                 }
             }

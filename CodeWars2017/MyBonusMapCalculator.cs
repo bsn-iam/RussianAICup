@@ -158,6 +158,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static void AddUnitCalculation(this BonusMap map, Vehicle unit, double maxValueDistance, double maxValue, double zeroValueDistance)
         {
             var maxValueDistanceSquared = maxValueDistance* maxValueDistance;
+            var zeroValueDistanceSquared = zeroValueDistance * zeroValueDistance;
 
             for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
             for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
@@ -172,13 +173,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                         map.Table[i, j] += maxValue;
                 }
 
-                if (distanceSquared > maxValueDistanceSquared && distanceSquared < zeroValueDistance)
+                if (distanceSquared > maxValueDistanceSquared && distanceSquared < zeroValueDistanceSquared)
                 {
                     if (map.MapType == MapType.Flat)
-                        map.Table[i, j] = Math.Max(maxValue - ((distanceSquared - maxValueDistanceSquared) / zeroValueDistance), map.Table[i, j]);
+                        map.Table[i, j] = Math.Max(maxValue - ((distanceSquared - maxValueDistanceSquared) / zeroValueDistanceSquared), map.Table[i, j]);
                     else
                     {
-                        map.Table[i, j] += maxValue - ((distanceSquared - maxValueDistanceSquared) / zeroValueDistance);
+                        map.Table[i, j] += maxValue - ((distanceSquared - maxValueDistanceSquared) / zeroValueDistanceSquared);
                     }
 
                 }
