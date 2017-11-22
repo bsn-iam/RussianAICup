@@ -18,7 +18,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public double[,] Table = new double[MapPointsAmount, MapPointsAmount];
         public Universe Universe = MyStrategy.Universe;
         public SortedList<int, BonusMap> BonusMapList = new SortedList<int, BonusMap>();
-        private BonusMap StaticMap;
+        private readonly BonusMap StaticMap;
+        public Dictionary<Point, double> possibleRays = new Dictionary<Point, double>();
 
         public BonusMapCalculator()
         {
@@ -28,7 +29,62 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         internal void RunTick(Universe universe) => Universe = universe;
 
-        public BonusMap GenerateMap(Squad squad)
+        public AbsolutePosition GetBonusMovePoint(Squad squad)
+        {
+            var map = GenerateMap(squad);
+
+            int angleStep = 4;
+            double radius = squad.CruisingSpeed * Math.Max(4, squad.ExpectedTicksToNextUpdate);
+            
+            var squadCenterUnit = squad.Units.GetCentralUnit();
+            var squadCenter = new Point(squadCenterUnit.X, squadCenterUnit.Y);
+            //var possibleRays = new Dictionary<Point, double>();
+            possibleRays = new Dictionary<Point, double>();
+
+            for (int angle = 0; angle < 360; angle += angleStep)
+            {
+                double angleSI = Math.PI / 180 * angle;
+                var possibleDestination = new Point(squadCenter.X + radius * Math.Sin(angleSI), squadCenter.Y + radius * Math.Cos(angleSI));
+                if (possibleDestination.X < 0 || possibleDestination.Y < 0)
+                    continue;
+                var cellValuesOnRay = new List<double>();
+
+                for (int i = (int)Math.Min(possibleDestination.X, squadCenter.X); i <= (int)Math.Max(possibleDestination.X, squadCenter.X); i++)
+                    for (int j = (int)Math.Min(possibleDestination.Y, squadCenter.Y); j <= (int)Math.Max(possibleDestination.Y, squadCenter.Y); j++)
+                    {
+                        var worldPoint = new Point(i, j);
+                        var isNearRay =
+                            Geom.SegmentCircleIntersects(possibleDestination, squadCenter, worldPoint,
+                                (double) MapCellWidth / 2);
+                        if (isNearRay)
+                        {
+                            var mapX = (int)Math.Round(i / SizeWorldMapKoeff);
+                            var mapY = (int)Math.Round(j / SizeWorldMapKoeff);
+                            if (mapX >= 0 && mapY >= 0)
+                            {
+                                cellValuesOnRay.Add(map.Table[mapX, mapY]);
+                                //Universe.Print($"{worldPoint} is near line between {possibleDestination} and {squadCenter}.");
+                            }
+
+                        }
+                    }
+
+                possibleRays.Add(possibleDestination, cellValuesOnRay.Average());
+            }
+
+            var maxRayWin = Double.MinValue;
+            var chosenDestination = new Point();
+            foreach (var ray in possibleRays)
+                if (ray.Value > maxRayWin)
+                {
+                    maxRayWin = ray.Value;
+                    chosenDestination = ray.Key;
+                }
+
+            return chosenDestination.ToAbsolutePosition();
+        }
+
+        private BonusMap GenerateMap(Squad squad)
         {
             var timer = new Stopwatch();
             timer.Restart();
@@ -58,6 +114,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squadBonusMapList.Add(aeroDangerMap);
             BonusMapList.Add(2, aeroDangerMap);
 
+            //if (squad.IsScout)
+            //{
+            //    
+            //}
             var scoutWinMap = GetScoutBonusMap(predictedWorldState.OppUnits, squadCenter, squad.Units.First().VisionRange, MapType.Additive)
                 .SetWeight(1);
             squadBonusMapList.Add(scoutWinMap);
@@ -69,7 +129,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squadBonusMapList.Add(StaticMap);
             BonusMapList.Add(4, StaticMap);
 
-            //var resultingMap = aeroDangerMap;
             var resultingMap = BonusMapSum(squadBonusMapList);
             BonusMapList.Add(5, resultingMap);
             //BonusMapList.Add(squad.Id, scoutWinMap);
@@ -118,7 +177,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = new BonusMap(mapType);
 
             foreach (var unit in unitsForMap)
-                map.AddUnitCalculation(unit, 15, 1, 100);
+                map.AddUnitCalculation(unit, 10, 1, 30);
 
             return map;
         }
@@ -133,7 +192,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             var map = new BonusMap(mapType);
             foreach (var unit in unitsForMap)
-                map.AddUnitCalculation(unit, unit.AerialAttackRange * 1, unit.AerialDamage, unit.AerialAttackRange * 3);
+                map.AddUnitCalculation(unit, unit.AerialAttackRange * 1, unit.AerialDamage, unit.AerialAttackRange *2.5);
 
             return map;
         }
@@ -157,20 +216,25 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private BonusMap GenerateStaticMap()
         {
-            var map = new BonusMap().SetWeight(-1);
-            const double borderWidth = 50;
+            var map = new BonusMap().SetWeight(-1.5);
+            const double borderWidth = 25;
             var worldWidth = WorldPointsAmount;
             var greenWorldZone = worldWidth - borderWidth;
 
             for (int i = 0; i < MapPointsAmount; i++)
             for (int j = 0; j < MapPointsAmount; j++)
             {
-                if (i > greenWorldZone)
-                    map.Table[i, j] += i - greenWorldZone;
+                if (i * SizeWorldMapKoeff > greenWorldZone)
+                    map.Table[i, j] += i * SizeWorldMapKoeff - greenWorldZone;
+                if (i * SizeWorldMapKoeff < borderWidth)
+                    map.Table[i, j] += borderWidth - i * SizeWorldMapKoeff;
 
-                if (j > (worldWidth - borderWidth))
-                    map.Table[i, j] += j - greenWorldZone;
+                if (j * SizeWorldMapKoeff > (worldWidth - borderWidth))
+                    map.Table[i, j] += j * SizeWorldMapKoeff - greenWorldZone;
+                if (j * SizeWorldMapKoeff < borderWidth)
+                    map.Table[i, j] += borderWidth - j * SizeWorldMapKoeff;
                 }
+            
             return map;
         }
 

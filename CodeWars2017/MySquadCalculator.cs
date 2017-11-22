@@ -196,12 +196,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                      var scout = squad.Units.FirstOrDefault();
                      if (scout == null)
                          continue;
-                     var requiredPosition = GeneratePositionForScout(squad);
-                     squad.DoAttack(ActionList, requiredPosition);
+
+                    //var requiredPosition = GeneratePositionForScout(squad);
+                    var requiredPosition = BonusCalculator.GetBonusMovePoint(squad);
 
 
-                    var bonusMap = BonusCalculator.GenerateMap(squad);
-
+                    squad.DoAttack(ActionList, requiredPosition);
                 }
             }
         }

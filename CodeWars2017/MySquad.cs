@@ -221,10 +221,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             get
             {
-                double speed = double.MaxValue;
+                var speed = Double.MaxValue;
                 foreach (var unit in Units)
                     if (speed > unit.MaxSpeed)
-                    speed =unit.MaxSpeed;
+                    speed = unit.MaxSpeed;
                 return speed;
             }
         }

@@ -220,6 +220,18 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                     }
             }
 
+            foreach (var ray in MyStrategy.BonusCalculator.possibleRays)
+            {
+                var color01 = new Color01(1, 1 - ray.Value, 1 - ray.Value);
+                FillCircle(color01.ToColor(), ray.Key.X, ray.Key.Y, 1);
+            }
+
+            foreach (var squad in MyStrategy.SquadCalculator.SquadList.Where(s =>s.IsScout))
+            {
+                var scoutCenter = squad.Units.GetUnitsCenter();
+                DrawCircle(Color.DeepSkyBlue, scoutCenter.X, scoutCenter.Y, MyStrategy.Universe.Game.FighterVisionRange);
+            }
+
             #endregion
 
             #region UnitsDraw

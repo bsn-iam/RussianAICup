@@ -403,6 +403,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         #endregion
 
+        public static AbsolutePosition ToAbsolutePosition(this Point point) => new AbsolutePosition(point.X, point.Y);
 
         public static double GetDistanceBetweenUnits(Vehicle u1, Vehicle u2) =>
             Math.Sqrt((u1.X - u2.X) * (u1.X - u2.X) + (u1.Y - u2.Y) * (u1.Y - u2.Y));
