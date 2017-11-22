@@ -200,7 +200,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                      squad.DoAttack(ActionList, requiredPosition);
 
 
-                    //var bonusMap = BonusCalculator.GenerateMap(squad);
+                    var bonusMap = BonusCalculator.GenerateMap(squad);
 
                 }
             }

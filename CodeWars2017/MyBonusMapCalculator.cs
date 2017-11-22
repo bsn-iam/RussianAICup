@@ -18,6 +18,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public double[,] Table = new double[MapPointsAmount, MapPointsAmount];
         public Universe Universe = MyStrategy.Universe;
         public SortedList<int, BonusMap> BonusMapList = new SortedList<int, BonusMap>();
+        private BonusMap StaticMap;
+
+        public BonusMapCalculator()
+        {
+            StaticMap = GenerateStaticMap();
+        }
 
 
         internal void RunTick(Universe universe) => Universe = universe;
@@ -47,23 +53,25 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squadBonusMapList.Add(aeroCollisionMap);
             BonusMapList.Add(1, aeroCollisionMap);
 
-            var aeroDangerMap = GetAeroDangerMap(predictedWorldState.OppUnits, squadCenter, MapType.Flat)
-                .SetWeight(-3).Trim();
+            var aeroDangerMap = GetAeroDangerMap(predictedWorldState.OppUnits, squadCenter, MapType.Additive)
+                .SetWeight(-1);
             squadBonusMapList.Add(aeroDangerMap);
             BonusMapList.Add(2, aeroDangerMap);
 
             var scoutWinMap = GetScoutBonusMap(predictedWorldState.OppUnits, squadCenter, squad.Units.First().VisionRange, MapType.Additive)
-                .SetWeight(3).Trim();
+                .SetWeight(1);
             squadBonusMapList.Add(scoutWinMap);
             BonusMapList.Add(3, scoutWinMap);
 
 
             //var groundCollision = GenerateMap(enemyUnits.Where(u => !u.IsAerial && !squadIds.Contains(u.Id)).ToList(), 10, MapPointsAmount);
 
+            squadBonusMapList.Add(StaticMap);
+            BonusMapList.Add(4, StaticMap);
 
             //var resultingMap = aeroDangerMap;
             var resultingMap = BonusMapSum(squadBonusMapList);
-            BonusMapList.Add(4, resultingMap);
+            BonusMapList.Add(5, resultingMap);
             //BonusMapList.Add(squad.Id, scoutWinMap);
             var tileListCheck = aeroCollisionMap.GetTileList();
             var tileListCheck2 = aeroDangerMap.GetTileList();
@@ -80,7 +88,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var sumMap= new BonusMap();
             foreach (var map in squadBonusMapList)
             {
-                //map.Trim();
+                map.Trim();
                 for (int i = 0; i < MapPointsAmount; i++)
                 for (int j = 0; j < MapPointsAmount; j++)
                     sumMap.Table[i, j] += map.Table[i, j] * map.Weight;
@@ -110,14 +118,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = new BonusMap(mapType);
 
             foreach (var unit in unitsForMap)
-                map.AddUnitCalculation(unit, 15, 1, 500);
+                map.AddUnitCalculation(unit, 15, 1, 100);
 
             return map;
         }
 
         private BonusMap GetAeroDangerMap(List<Vehicle> enemyUnits, AbsolutePosition squadCenter, MapType mapType)
         {
-            const double affectedRange = 1000;
+            const double affectedRange = 500;
             var unitsForMap = enemyUnits.Where(
                 u => (u.X - squadCenter.X) < affectedRange &&
                      (u.Y - squadCenter.Y) < affectedRange
@@ -125,7 +133,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             var map = new BonusMap(mapType);
             foreach (var unit in unitsForMap)
-                map.AddUnitCalculation(unit, unit.AerialAttackRange*2, unit.AerialDamage, 500);
+                map.AddUnitCalculation(unit, unit.AerialAttackRange * 1, unit.AerialDamage, unit.AerialAttackRange * 3);
 
             return map;
         }
@@ -141,9 +149,28 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = new BonusMap(mapType);
             foreach (var unit in unitsForMap)
             {
-                map.AddUnitCalculation(unit, scoutVisionRange, unit.AerialDamage + unit.GroundDamage, 1500);
+                map.AddUnitCalculation(unit, scoutVisionRange, unit.AerialDamage + unit.GroundDamage, 1000);
             }
 
+            return map;
+        }
+
+        private BonusMap GenerateStaticMap()
+        {
+            var map = new BonusMap().SetWeight(-1);
+            const double borderWidth = 50;
+            var worldWidth = WorldPointsAmount;
+            var greenWorldZone = worldWidth - borderWidth;
+
+            for (int i = 0; i < MapPointsAmount; i++)
+            for (int j = 0; j < MapPointsAmount; j++)
+            {
+                if (i > greenWorldZone)
+                    map.Table[i, j] += i - greenWorldZone;
+
+                if (j > (worldWidth - borderWidth))
+                    map.Table[i, j] += j - greenWorldZone;
+                }
             return map;
         }
 
@@ -157,6 +184,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     {
         public static void AddUnitCalculation(this BonusMap map, Vehicle unit, double maxValueDistance, double maxValue, double zeroValueDistance)
         {
+            if (maxValueDistance > zeroValueDistance)
+                throw new Exception("Wrong distance limits.");
+
             var maxValueDistanceSquared = maxValueDistance* maxValueDistance;
             var zeroValueDistanceSquared = zeroValueDistance * zeroValueDistance;
 
@@ -201,6 +231,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     minValue = map.Table[i, j];
                 }
 
+            if (Math.Abs(minValue - maxValue) < Double.Epsilon)
+            {
+                MyStrategy.Universe.Print("Map is empty");
+                return map;
+            }
 
             //scale map to range [0, 1]
             for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)

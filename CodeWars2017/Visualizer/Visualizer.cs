@@ -214,6 +214,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                     { 
                         var color01 = new Color01(1, 1-tile.Value, 1-tile.Value);
                         FillRect(color01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
+                        if (tile.Value  > 0.9999)
+                            FillRect(Color.Green, tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
                         //DrawText($"{tile.Value:f4}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
                     }
             }
