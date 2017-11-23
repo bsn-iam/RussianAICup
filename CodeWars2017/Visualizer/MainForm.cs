@@ -33,6 +33,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
         private void renderButton_Click(object sender, EventArgs e)
         {
             Visualizer.DrawSince = 0;
+            Visualizer.RenderPressed = true;
+
         }
 
         private void stopRenderButton_Click(object sender, EventArgs e)

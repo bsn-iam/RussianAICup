@@ -76,7 +76,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             _graphics.DrawString(text, font, brush, _X(x), _Y(y));
         }
 
-        private static double _lookX = 0, _lookY = 0, _scale = 1.5;
+        private static double _lookX = 0, _lookY = 0, _scale = 1;
 
         private static int _X(double x)
         {
@@ -327,14 +327,54 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                 if (unit!=null)
                     DrawLine(Color.LightGreen, unit.X, unit.Y, order.Value.X, order.Value.Y, 2);
             }
-            
+
 
             #endregion
 
 
+            #region NukeStrike
+
+            foreach (var player in MyStrategy.Universe.World.Players)
+            {
+
+                var isNukeRequested = player.NextNuclearStrikeTickIndex > 0;
+                var isMe = player.IsMe;
+                var radius = MyStrategy.Universe.Game.TacticalNuclearStrikeRadius;
+                if (isNukeRequested)
+                    DrawCircle(isMe? Color.GreenYellow : Color.DeepPink, player.NextNuclearStrikeX, player.NextNuclearStrikeY, radius, 3);
+                var coolDownValue = player.RemainingNuclearStrikeCooldownTicks;
+                DrawText($"{coolDownValue}", 8, Brushes.Black, isMe ? 500 : 600, 25);
+            }
+
+            #region Damage
+
+            if (MyStrategy.Universe.World.TickIndex != 0)
+            {
+                var thisStepUnits = MyStrategy.Predictor.WorldStateList[MyStrategy.Universe.World.TickIndex].MyUnits;
+                var previousStepUnits =
+                    MyStrategy.Predictor.WorldStateList[MyStrategy.Universe.World.TickIndex - 1].MyUnits;
+
+                foreach (var thisStepUnit in thisStepUnits)
+                foreach (var previousStepUnit in previousStepUnits)
+                    if (thisStepUnit.Durability + Double.Epsilon < previousStepUnit.Durability)
+                        DrawCircle(Color.Yellow, thisStepUnit.X, thisStepUnit.Y, 2.5, 2);
+
+                thisStepUnits = MyStrategy.Predictor.WorldStateList[MyStrategy.Universe.World.TickIndex].OppUnits;
+                previousStepUnits =
+                    MyStrategy.Predictor.WorldStateList[MyStrategy.Universe.World.TickIndex - 1].OppUnits;
+
+                foreach (var thisStepUnit in thisStepUnits)
+                foreach (var previousStepUnit in previousStepUnits)
+                    if (thisStepUnit.Durability + Double.Epsilon < previousStepUnit.Durability)
+                        DrawCircle(Color.LightYellow, thisStepUnit.X, thisStepUnit.Y, 2.5, 2);
+            }
 
 
-////
+            #endregion
+
+            #endregion
+
+            ////
 
             #region Something
 
@@ -577,6 +617,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                     _scale = value;
             }
         }
+
+        public static bool RenderPressed { get; internal set; }
 
         public static bool Pause = false;
 
