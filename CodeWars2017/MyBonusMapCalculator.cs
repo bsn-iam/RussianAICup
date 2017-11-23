@@ -60,7 +60,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                         {
                             var mapX = (int)Math.Round(i / SizeWorldMapKoeff);
                             var mapY = (int)Math.Round(j / SizeWorldMapKoeff);
-                            if (mapX >= 0 && mapY >= 0)
+                            if (mapX >= 0 && mapY >= 0 && mapX < MapPointsAmount && mapY < MapPointsAmount)
                             {
                                 cellValuesOnRay.Add(map.Table[mapX, mapY]);
                                 //Universe.Print($"{worldPoint} is near line between {possibleDestination} and {squadCenter}.");
@@ -187,7 +187,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             const double affectedRange = 500;
             var unitsForMap = enemyUnits.Where(
                 u => (u.X - squadCenter.X) < affectedRange &&
-                     (u.Y - squadCenter.Y) < affectedRange
+                     (u.Y - squadCenter.Y) < affectedRange &&
+                     u.Type != VehicleType.Tank
             ).ToList();
 
             var map = new BonusMap(mapType);
@@ -202,7 +203,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             const double affectedRange = 1200;
             var unitsForMap = enemyUnits.Where(
                 u => (u.X - squadCenter.X) < affectedRange &&
-                     (u.Y - squadCenter.Y) < affectedRange
+                     (u.Y - squadCenter.Y) < affectedRange &&
+                     u.Type != VehicleType.Arrv
             ).ToList();
 
             var map = new BonusMap(mapType);

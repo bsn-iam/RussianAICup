@@ -143,7 +143,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             var aggression = Aggression;
 
-            foreach (var squad in SquadList.GetIteratorSquadListActive())
+            foreach (var squad in SquadList.GetIteratorSquadListActive().Where(s => !s.IsScout))
             {
                 if (aggression > 1.2)
                 {
@@ -162,8 +162,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 else
                 {
                     //going to deff
-                    if (!squad.IsScout)
-                        squad.DoAttack(ActionList, Universe.MapConerLeftUp);
+                    squad.DoAttack(ActionList, Universe.MapConerLeftUp);
                 }
             }
         }
@@ -197,11 +196,19 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                      if (scout == null)
                          continue;
 
-                    //var requiredPosition = GeneratePositionForScout(squad);
-                    var requiredPosition = BonusCalculator.GetBonusMovePoint(squad);
+                     var freezeForNuke = NukeRequested && Universe.Player.NextNuclearStrikeVehicleId == scout.Id;
 
+                     if (!freezeForNuke)
+                     {
+                         //var requiredPosition = GeneratePositionForScout(squad);
+                         var requiredPosition = BonusCalculator.GetBonusMovePoint(squad);
+                         squad.DoAttack(ActionList, requiredPosition);
 
-                    squad.DoAttack(ActionList, requiredPosition);
+                     }
+                     else
+                     {
+                         Universe.Print($"Scout {squad.Id} is freezed for nuclear strike");
+                     }
                 }
             }
         }

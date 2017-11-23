@@ -192,7 +192,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var targetPoint = new AbsolutePosition(targetUnit.X, targetUnit.Y);
 
 
-            foreach (var enemyGuy in universe.OppUnits)
+            foreach (var enemyGuy in universe.OppUnits.Where(u => u.Type != VehicleType.Arrv))
             {
                 var distanceSquaredFromNuceCenter = targetUnit.GetSquaredDistanceTo(enemyGuy);
                 if (distanceSquaredFromNuceCenter < squaredRange)
