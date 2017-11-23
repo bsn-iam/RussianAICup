@@ -84,6 +84,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 {
                     var potentialTarget = observation.Key.GetMostDistantAmong(observation.Value);
 
+
                     double currentNuclearResult = potentialTarget.GetPotentialNuclearWin(universe, nulcearRange);
 
                     if (currentNuclearResult > maxNuclearResult)
