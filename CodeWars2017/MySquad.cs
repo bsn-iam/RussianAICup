@@ -169,10 +169,25 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         #region Actions
 
-        internal void DoAttack(Queue<IMoveAction> actions, AbsolutePosition position)
+        internal void DoMove(Queue<IMoveAction> actions, AbsolutePosition position)
+        {
+            if (NukeMarkerCounter == 0)
+            {
+                actions.ActionSelectSquad(Id);
+                actions.ActionMoveSelectionToPosition(position);
+            }
+            else
+            {
+                MyStrategy.Universe.Print($"Squad {(Squads)Id} is locked due to Nuke marker.");
+            }
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
+        }
+        internal void DoStop(Queue<IMoveAction> actions)
         {
             actions.ActionSelectSquad(Id);
-            actions.ActionMoveSelectionToPosition(position);
+            var currentPosition = Units.GetUnitsCenter();
+            actions.ActionMoveSelectionToPosition(currentPosition);
+
             UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
@@ -181,6 +196,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             actions.ActionSelectSquad(thisSquad.Id);
             actions.ActionMoveSelectionToPosition(targetSquad.Units.GetUnitsCenter());
             UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
+        }
+
+        internal void SetNukeMarkerCount(int ticksLeft)
+        {
+            NukeMarkerCounter = ticksLeft;
         }
 
         public void UpdateLastCallTime(int thisCallTick)
@@ -229,6 +249,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
+        public int NukeMarkerCounter { get; set; }
 
         internal double GetNukeDamage(AbsolutePosition targetPoint, double range)
         {

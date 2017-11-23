@@ -96,8 +96,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             int squadDeltaId) =>
             actions.Enqueue(new ActionMoveToOnePoint(actions, squadList, squadAlfaId, squadDeltaId));
 
-        public static void ActionRequestNuclearStrike(this Queue<IMoveAction> moveActions, Vehicle scout, Vehicle target) =>
-            moveActions.Enqueue(new ActionRequestNuclearStrike(scout, target));
+        public static void ActionRequestNuclearStrike(this Queue<IMoveAction> moveActions, List<Squad> squadList, Vehicle scout,
+            Vehicle target)
+        {
+            var scoutSquad = squadList.GetSquadByUnit(scout);
+            if (scoutSquad != null)
+            {
+                scoutSquad.DoStop(moveActions);
+                moveActions.Enqueue(new ActionRequestNuclearStrike(scout, target));
+            }
+        }
+            
 
 
         #endregion
@@ -143,6 +152,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 universe.Move.X = target.X;
                 universe.Move.Y = target.Y;
                 universe.Move.VehicleId = scout.Id;
+
+                MyStrategy.SquadCalculator.SquadList.GetSquadByUnit(scout).SetNukeMarkerCount(30);
 
                 universe.Print($"Action {this} is started to [{target.X:f2}, {target.Y:f2}].");
                 return true;

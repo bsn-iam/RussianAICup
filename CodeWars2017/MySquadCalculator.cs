@@ -30,6 +30,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             foreach (var squad in SquadList)
                 squad.UpdateState(Universe);
+            foreach (var squad in SquadList)
+                if (squad.NukeMarkerCounter > 0)
+                    squad.NukeMarkerCounter--;
 
             #endregion
 
@@ -95,7 +98,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (scout != null && target != null && maxNuclearResult > 0)
                 {
                     NukeRequested = true;
-                    ActionList.ActionRequestNuclearStrike(scout, target);
+                    ActionList.ActionRequestNuclearStrike(SquadList, scout, target);
                 }
             }
 
@@ -149,7 +152,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 {
                     //Atack
                     if (squad.Id == (int) Squads.Tanks || squad.Id == (int) Squads.Ifvs)
-                        squad.DoAttack(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
+                        squad.DoMove(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
 
 
                     if (squad.Id == (int) Squads.Helicopters)
@@ -162,7 +165,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 else
                 {
                     //going to deff
-                    squad.DoAttack(ActionList, Universe.MapConerLeftUp);
+                    squad.DoMove(ActionList, Universe.MapConerLeftUp);
                 }
             }
         }
@@ -196,19 +199,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                      if (scout == null)
                          continue;
 
-                     var freezeForNuke = NukeRequested && Universe.Player.NextNuclearStrikeVehicleId == scout.Id;
-
-                     if (!freezeForNuke)
-                     {
                          //var requiredPosition = GeneratePositionForScout(squad);
                          var requiredPosition = BonusCalculator.GetBonusMovePoint(squad);
-                         squad.DoAttack(ActionList, requiredPosition);
-                     }
-                     else
-                     {
-                         Universe.Print($"Scout {squad.Id} is freezed for nuclear strike");
-                     }
-                }
+                         squad.DoMove(ActionList, requiredPosition);
+                 }
             }
         }
 

@@ -34,7 +34,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = GenerateMap(squad);
 
             int angleStep = 4;
-            double radius = squad.CruisingSpeed * Math.Max(4, squad.ExpectedTicksToNextUpdate);
+            double radius = squad.CruisingSpeed * Math.Max(4, squad.ExpectedTicksToNextUpdate) * 1.2;
             
             var squadCenterUnit = squad.Units.GetCentralUnit();
             var squadCenter = new Point(squadCenterUnit.X, squadCenterUnit.Y);
@@ -210,7 +210,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = new BonusMap(mapType);
             foreach (var unit in unitsForMap)
             {
-                map.AddUnitCalculation(unit, scoutVisionRange, unit.AerialDamage + unit.GroundDamage, 1000);
+                map.AddUnitCalculation(unit, scoutVisionRange, unit.AerialDamage + unit.GroundDamage, 800);
             }
 
             return map;
