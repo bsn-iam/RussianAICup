@@ -146,27 +146,35 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private void GenerateRestUnitsCommand()
         {
             var aggression = Aggression;
+            var nearestTarget = Universe.MyUnits.GetPositionOfNearestTarget(Universe.OppUnits);
 
             foreach (var squad in SquadList.GetIteratorSquadListActive().Where(s => !s.IsScout))
             {
                 if (aggression > 1.2)
                 {
-                    //Atack
+                    //Atack follow mode
+
                     if (squad.Id == (int) Squads.Tanks || squad.Id == (int) Squads.Ifvs)
                         squad.DoMove(ActionList, squad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
-
-
+                    
+                    
                     if (squad.Id == (int) Squads.Helicopters)
                         squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int) Squads.Ifvs));
                     if (squad.Id == (int) Squads.Fighters)
                         squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int) Squads.Tanks));
                     if (squad.Id == (int) Squads.Arrvs)
                         squad.DoFollow(ActionList, squad, SquadList.GetSquadById((int) Squads.Fighters));
+
+                    //Attack nearest mode
+                    //squad.DoMove(ActionList, nearestTarget, Universe.Game.TankSpeed);
                 }
                 else
                 {
                     //going to deff
-                    squad.DoMove(ActionList, Universe.MapConerLeftUp);
+                   // if (Universe.World.TickIndex % 5 == 0)
+                   //     squad.DoRotate(ActionList);
+                   // else
+                        squad.DoMove(ActionList, Universe.MapConerLeftUp);
                 }
             }
         }
@@ -302,6 +310,4 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
 
     }
-
-
 }

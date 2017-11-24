@@ -90,6 +90,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public static void ActionMoveSelectionToPosition(this Queue<IMoveAction> moveActions, AbsolutePosition position) =>
             moveActions.Enqueue(new ActionMoveSelectionToPosition(position));
+        public static void ActionMoveSelectionToPosition(this Queue<IMoveAction> moveActions, AbsolutePosition position, double speed) =>
+            moveActions.Enqueue(new ActionMoveSelectionToPosition(position, speed));
+        public static void ActionRotateSelection(this Queue<IMoveAction> moveActions, AbsolutePosition center, double angleChange) =>
+            moveActions.Enqueue(new ActionRotateSelection(center, angleChange));
 
 
         public static void ActionMoveToOnePoint(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId,
@@ -106,11 +110,31 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 moveActions.Enqueue(new ActionRequestNuclearStrike(scout, target));
             }
         }
-            
-
 
         #endregion
 
+    }
+
+
+    internal class ActionRotateSelection : IMoveAction
+    {
+        private readonly AbsolutePosition center;
+        private readonly double angleChange;
+
+        public ActionRotateSelection(AbsolutePosition center, double angleChange)
+        {
+            this.center = center;
+            this.angleChange = angleChange;
+        }
+
+        public bool Execute(Universe universe)
+        {
+            universe.Move.Action = ActionType.Rotate;
+            universe.Move.Angle = angleChange;
+            universe.Move.X = center.X;
+            universe.Move.Y = center.Y;
+            return true;
+        }
     }
 
     internal class ActionDismissSelectionFromSquad : IMoveAction
@@ -356,11 +380,19 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     public class ActionMoveSelectionToPosition : IMoveAction
     {
         private readonly AbsolutePosition position;
+        private readonly double speed = 5;
 
         public ActionMoveSelectionToPosition(AbsolutePosition position)
         {
             this.position = position;
         }
+
+        public ActionMoveSelectionToPosition(AbsolutePosition position, double speed) : this(position)
+        {
+            this.position = position;
+            this.speed = speed;
+        }
+
         public bool Execute(Universe universe)
         {
             var selectionCenter = universe.GetSelectionCenter();
@@ -369,9 +401,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 universe.Print("Can avoid the movement.");
                 return false;
             }
-
-
-
 
             var moveOrderList = MyStrategy.MoveOrder;
             var selectedUnits = universe.GetSelectedUnits();
@@ -393,6 +422,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Action = ActionType.Move;
             universe.Move.X = position.X - selectionCenter.X;
             universe.Move.Y = position.Y - selectionCenter.Y;
+            universe.Move.MaxSpeed = speed;
             //universe.Print($"Action {this} is started.");
             return true;
         }

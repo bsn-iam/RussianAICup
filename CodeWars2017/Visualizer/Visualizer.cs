@@ -331,7 +331,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             #endregion
 
-
             #region NukeStrike
 
             foreach (var player in MyStrategy.Universe.World.Players)
