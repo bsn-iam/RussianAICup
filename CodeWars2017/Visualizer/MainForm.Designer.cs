@@ -104,7 +104,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             this.renderButton.Name = "renderButton";
             this.renderButton.Size = new System.Drawing.Size(56, 40);
             this.renderButton.TabIndex = 5;
-            this.renderButton.Text = "Render";
+            this.renderButton.Text = "Step";
             this.renderButton.UseVisualStyleBackColor = true;
             this.renderButton.Click += new System.EventHandler(this.renderButton_Click);
             // 
@@ -114,7 +114,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             this.stopRenderButton.Name = "stopRenderButton";
             this.stopRenderButton.Size = new System.Drawing.Size(56, 40);
             this.stopRenderButton.TabIndex = 6;
-            this.stopRenderButton.Text = "Stop Render";
+            this.stopRenderButton.Text = "-";
             this.stopRenderButton.UseVisualStyleBackColor = true;
             this.stopRenderButton.Click += new System.EventHandler(this.stopRenderButton_Click);
             // 
@@ -152,8 +152,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             this.mapIdTextBox.Location = new System.Drawing.Point(3, 292);
             this.mapIdTextBox.Name = "mapIdTextBox";
             this.mapIdTextBox.Size = new System.Drawing.Size(52, 20);
-            this.mapIdTextBox.TabIndex = 10;
-            this.mapIdTextBox.Text = "1";
+            this.mapIdTextBox.TabIndex = 11;
+            this.mapIdTextBox.Text = "5";
             this.mapIdTextBox.TextChanged += new System.EventHandler(this.mapIdTextBox_TextChanged);
             // 
             // lookAtLabel

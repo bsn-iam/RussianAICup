@@ -34,7 +34,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
                 Visualizer.Visualizer.LookAt(new Point(Universe.MapConerLeftUp.X, Universe.MapConerLeftUp.Y));
             }
 
-            if (Universe.World.TickIndex % 2 == 0)
+            var timerVisualizer = new Stopwatch();
+            timerVisualizer.Reset();
+            timerVisualizer.Start();
+
+            if (Universe.World.TickIndex % 1 == 0)
             {
                 Visualizer.Visualizer.Draw();
                 if (Universe.World.TickIndex >= Visualizer.Visualizer.DrawSince)
@@ -49,12 +53,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
                     timer.Stop();
                 }
             }
+            if (timerVisualizer.ElapsedMilliseconds > 500)
+               Universe.Print("Time for visualizer " + timerVisualizer.ElapsedMilliseconds);
+            timerVisualizer.Stop();
 
-
-            while (Visualizer.Visualizer.Pause)
+            while (Visualizer.Visualizer.Pause && !Visualizer.Visualizer.RenderPressed)
             {
                 // pause here
             }
+            if (Visualizer.Visualizer.RenderPressed)
+                Visualizer.Visualizer.RenderPressed = false;
 #else
             try
             {
@@ -134,7 +142,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
                 foreach (var update in world.VehicleUpdates)
                     if (unit.Id == update.Id)
                     {
-                        var newUnit = new Vehicle(unit, update);
+                           var newUnit = new Vehicle(unit, update);
                         units.Remove(unit);
                         if (update.Durability!=0) //Note: Dead or not visible units are removed from the list! 
                             units.Add(newUnit);

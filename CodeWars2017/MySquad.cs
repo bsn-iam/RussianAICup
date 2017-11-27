@@ -26,6 +26,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public int ScalingTimeDelay { get; internal set; }
         public bool IsWaitingForScaling { get; internal set; }
         public bool IsScout { get; internal set; } = false;
+        public bool IsCwDirection { get; internal set; } = true;
 
         private int previousCallTick = 0;
         private int lastCallTick = 0;
@@ -202,6 +203,21 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
             UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
+
+        internal void DoMove(Queue<IMoveAction> actions, AbsolutePosition position, double speed)
+        {
+            if (NukeMarkerCounter == 0)
+            {
+                actions.ActionSelectSquad(Id);
+                actions.ActionMoveSelectionToPosition(position, speed);
+            }
+            else
+            {
+                MyStrategy.Universe.Print($"Squad {(Squads)Id} is locked due to Nuke marker.");
+            }
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
+        }
+
         internal void DoStop(Queue<IMoveAction> actions)
         {
             actions.ActionSelectSquad(Id);
@@ -217,6 +233,19 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             actions.ActionMoveSelectionToPosition(targetSquad.Units.GetUnitsCenter());
             UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
+
+        internal void DoRotate(Queue<IMoveAction> actions)
+        {
+            actions.ActionSelectSquad(Id);
+
+            var currentPosition = Units.GetUnitsCenter();
+            IsCwDirection = !IsCwDirection;
+            var angleDelta = Math.PI / 18;
+            var angleChange = IsCwDirection ? angleDelta : -angleDelta;
+
+            actions.ActionRotateSelection(currentPosition, angleChange);
+        }
+
 
         internal void SetNukeMarkerCount(int ticksLeft)
         {
