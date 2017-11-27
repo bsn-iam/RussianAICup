@@ -34,7 +34,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = GenerateMap(squad);
 
             int angleStep = 4;
-            double radius = squad.CruisingSpeed * Math.Max(4, squad.ExpectedTicksToNextUpdate) * 1.2;
+            double radius = squad.CruisingSpeed * squad.ExpectedTicksToNextUpdate * 1.2;
             
             var squadCenterUnit = squad.Units.GetCentralUnit();
             var squadCenter = new Point(squadCenterUnit.X, squadCenterUnit.Y);
@@ -45,7 +45,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 double angleSI = Math.PI / 180 * angle;
                 var possibleDestination = new Point(squadCenter.X + radius * Math.Sin(angleSI), squadCenter.Y + radius * Math.Cos(angleSI));
-                if (possibleDestination.X < 0 || possibleDestination.Y < 0)
+                if (possibleDestination.X < 0 || possibleDestination.Y < 0 || possibleDestination.X >= 1024 || possibleDestination.Y >= 1024)
                     continue;
                 var cellValuesOnRay = new List<double>();
 

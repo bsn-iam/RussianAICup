@@ -2,6 +2,7 @@
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 {
@@ -29,7 +30,21 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private int previousCallTick = 0;
         private int lastCallTick = 0;
 
-        public int ExpectedTicksToNextUpdate => lastCallTick - previousCallTick;
+        public int ExpectedTicksToNextUpdate
+        {
+            get
+            {
+                var duration = lastCallTick - previousCallTick;
+                if (duration > 1000)
+                    MyStrategy.Universe.Print("Huge time from previous step.");
+
+                duration = Math.Min(duration, 500);
+                duration = Math.Max(4, duration);
+
+                return duration;
+            }
+        }
+
         #endregion
 
         #region Constructors
@@ -42,6 +57,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squadList.Add(this);
             IsCreated = false;
             IsEnabled = true;
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
         public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id)
         {
@@ -50,6 +66,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squadList.Add(this);
             IsCreated = false;
             IsEnabled = true;
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
 
@@ -62,6 +79,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squadList.Add(this);
             IsCreated = false;
             IsEnabled = true;
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
         public Squad(List<Vehicle> units, bool isAbstract = true)
@@ -74,6 +92,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             IsCreated = true;
             IsEnabled = false;
             IsAbstract = isAbstract;
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
         public Squad(Squad squadAlfa, Squad squadDelta, bool isAbstract = true)
@@ -89,6 +108,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             IsCreated = true;
             IsEnabled = false;
             IsAbstract = isAbstract;
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
         //public Squad(int id)

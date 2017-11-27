@@ -70,7 +70,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
 
         private void RunTick(World world, Game game, Move move, Player player)
         {
-            DateTime startTime = DateTime.Now;
+            var runTickTimer = new Stopwatch();
+            runTickTimer.Reset();
+            runTickTimer.Start();
+
             UpdateUnitsStatus(world);
             Universe = new Universe(world, game, UnitsMy, UnitsOpp, move, player);
 
@@ -79,11 +82,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             SquadCalculator.RunTick(Universe);
             ActionHandler.RunTick(Universe, SquadCalculator.ActionList);
 
-            DateTime endTime = DateTime.Now;
+            runTickTimer.Stop();
 
-            var duration = (endTime - startTime).TotalMilliseconds;
+            var duration = runTickTimer.ElapsedMilliseconds;
             if (duration > 500)
                 Universe.Print($"StepTime {duration:f2} ms");
+
+            //if (duration > 10000)
+            //    throw new Exception("Step time is greater than maximum.");
         }
 
         private void UpdateUnitsStatus(World world)

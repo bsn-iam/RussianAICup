@@ -371,16 +371,15 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
 
 
-
-
-            var moveOrderList = MyStrategy.MoveOrder;
             var selectedUnits = universe.GetSelectedUnits();
             if (!selectedUnits.Any())
             {
                 universe.Print("Can avoid the movement. Selected unit is absent or dead.");
                 return false;
             }
+
             var centralUnit = selectedUnits.GetCentralUnit();
+            var moveOrderList = MyStrategy.MoveOrder;
 
             foreach (var unit in selectedUnits)
                 foreach (var moveOrder in new SortedList<long, AbsolutePosition>(moveOrderList))
