@@ -122,7 +122,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private void GenerateActions()
         {
             ShowSquadList();
-            //CombineSquadsOnStart();
+            CombineSquadsOnStart();
 
             if (ActionList.Count == 0)
             {
@@ -135,10 +135,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             if (Universe.World.TickIndex == 50)
             {
-                ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int) Squads.Tanks),
-                    SquadList.GetSquadById((int) Squads.Fighters), SquadIdGenerator.New, false);
-                ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int) Squads.Ifvs),
-                    SquadList.GetSquadById((int) Squads.Helicopters), SquadIdGenerator.New, false);
+                //ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int) Squads.Tanks),
+                //    SquadList.GetSquadById((int) Squads.Fighters), SquadIdGenerator.New, false);
+                //ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById((int) Squads.Ifvs),
+                //    SquadList.GetSquadById((int) Squads.Helicopters), SquadIdGenerator.New, false);
                 ReduceScaleForAll();
             }
         }

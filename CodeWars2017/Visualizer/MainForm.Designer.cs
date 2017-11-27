@@ -37,7 +37,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             this.buttonPause = new System.Windows.Forms.Button();
             this.renderButton = new System.Windows.Forms.Button();
             this.stopRenderButton = new System.Windows.Forms.Button();
-            this.cellsCheckBox = new System.Windows.Forms.CheckBox();
+            this.renderCheckBox = new System.Windows.Forms.CheckBox();
             this.gradCheckBox = new System.Windows.Forms.CheckBox();
             this.lookAtTextBox = new System.Windows.Forms.TextBox();
             this.mapIdTextBox = new System.Windows.Forms.TextBox();
@@ -118,15 +118,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             this.stopRenderButton.UseVisualStyleBackColor = true;
             this.stopRenderButton.Click += new System.EventHandler(this.stopRenderButton_Click);
             // 
-            // cellsCheckBox
+            // renderCheckBox
             // 
-            this.cellsCheckBox.AutoSize = true;
-            this.cellsCheckBox.Location = new System.Drawing.Point(3, 189);
-            this.cellsCheckBox.Name = "cellsCheckBox";
-            this.cellsCheckBox.Size = new System.Drawing.Size(47, 17);
-            this.cellsCheckBox.TabIndex = 7;
-            this.cellsCheckBox.Text = "cells";
-            this.cellsCheckBox.UseVisualStyleBackColor = true;
+            this.renderCheckBox.AutoSize = true;
+            this.renderCheckBox.Checked = true;
+            this.renderCheckBox.Location = new System.Drawing.Point(3, 189);
+            this.renderCheckBox.Name = "renderCheckBox";
+            this.renderCheckBox.Size = new System.Drawing.Size(47, 17);
+            this.renderCheckBox.TabIndex = 7;
+            this.renderCheckBox.Text = "Render";
+            this.renderCheckBox.UseVisualStyleBackColor = true;
             // 
             // gradCheckBox
             // 
@@ -153,7 +154,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             this.mapIdTextBox.Name = "mapIdTextBox";
             this.mapIdTextBox.Size = new System.Drawing.Size(52, 20);
             this.mapIdTextBox.TabIndex = 11;
-            this.mapIdTextBox.Text = "5";
+            this.mapIdTextBox.Text = "4";
             this.mapIdTextBox.TextChanged += new System.EventHandler(this.mapIdTextBox_TextChanged);
             // 
             // lookAtLabel
@@ -184,7 +185,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             this.Controls.Add(this.mapIdTextBox);
             this.Controls.Add(this.lookAtTextBox);
             this.Controls.Add(this.gradCheckBox);
-            this.Controls.Add(this.cellsCheckBox);
+            this.Controls.Add(this.renderCheckBox);
             this.Controls.Add(this.stopRenderButton);
             this.Controls.Add(this.renderButton);
             this.Controls.Add(this.buttonPause);
@@ -210,7 +211,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
         private System.Windows.Forms.Button buttonPause;
         private System.Windows.Forms.Button renderButton;
         private System.Windows.Forms.Button stopRenderButton;
-        public System.Windows.Forms.CheckBox cellsCheckBox;
+        public System.Windows.Forms.CheckBox renderCheckBox;
         public System.Windows.Forms.CheckBox gradCheckBox;
         public System.Windows.Forms.TextBox lookAtTextBox;
         public System.Windows.Forms.TextBox mapIdTextBox;

@@ -82,6 +82,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             runTickTimer.Reset();
             runTickTimer.Start();
 
+            //var weather = world.WeatherByCellXY;
+            //Universe.Print("Weather CellsAmount " +weather.Length);
+
             UpdateUnitsStatus(world);
             Universe = new Universe(world, game, UnitsMy, UnitsOpp, move, player);
 

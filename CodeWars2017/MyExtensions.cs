@@ -217,6 +217,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var squaredRange = myUnit.VisionRange * myUnit.VisionRange;
             return myUnit.GetSquaredDistanceTo(targetUnit) < squaredRange;
         }
+
         public static bool DoISeeThisPoint(this Vehicle myUnit, AbsolutePosition point)
         {
             var squaredRange = myUnit.VisionRange * myUnit.VisionRange;

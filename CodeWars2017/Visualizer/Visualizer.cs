@@ -166,7 +166,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             
             Done = false;
-            if (MyStrategy.Universe.World.TickIndex >= DrawSince)
+            if (MyStrategy.Universe.World.TickIndex >= DrawSince && Visualizer._form.renderCheckBox.Checked)
                 _draw();
             SegmentsDrawQueue.Clear();
             Done = true;
@@ -202,9 +202,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             }
             #endregion
 
-            #region BonusMap
+                #region BonusMap
 
-            var bonusMap = MyStrategy.BonusCalculator.BonusMapList.FirstOrDefault(m => m.Key.ToString() == _form.mapIdTextBox.Text.Trim());
+                var bonusMap = MyStrategy.BonusCalculator.BonusMapList.FirstOrDefault(m => m.Key.ToString() == _form.mapIdTextBox.Text.Trim());
             if (bonusMap.Value != null)
             {
                 var tileList = bonusMap.Value.GetTileList();
@@ -214,8 +214,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                     { 
                         var color01 = new Color01(1, 1-tile.Value, 1-tile.Value);
                         FillRect(color01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
+
                         if (tile.Value  > 0.9999)
-                            FillRect(Color.Green, tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
+                            FillRect(Color.YellowGreen, tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
+
                         //DrawText($"{tile.Value:f4}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
                     }
             }
@@ -373,6 +375,24 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             #endregion
 
+            #region SquadSelection
+
+            var selectedSquad = MyStrategy.SquadCalculator.SquadList.FirstOrDefault(s => s.Id.ToString() == _form.lookAtTextBox.Text.Trim());
+            if (selectedSquad != null && selectedSquad.Units.Count > 0)
+            {
+                var xMax = selectedSquad.Units.OrderByDescending(u => u.X).FirstOrDefault().X + 5;
+                var xMin = selectedSquad.Units.OrderBy(u => u.X).FirstOrDefault().X - 5;
+                var yMax = selectedSquad.Units.OrderByDescending(u => u.Y).FirstOrDefault().Y + 5;
+                var yMin = selectedSquad.Units.OrderBy(u => u.Y).FirstOrDefault().Y - 5;
+                DrawLine(Color.Aquamarine, xMin, yMin, xMax, yMin, 2);
+                DrawLine(Color.Aquamarine, xMin, yMin, xMin, yMax, 2);
+                DrawLine(Color.Aquamarine, xMax, yMax, xMax, yMin, 2);
+                DrawLine(Color.Aquamarine, xMax, yMax, xMin, yMax, 2);
+
+            }
+
+            #endregion
+
             ////
 
             #region Something
@@ -399,7 +419,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             //                }
             //            }
 
-            //            if (_form.cellsCheckBox.Checked)
+            //            if (_form.renderCheckBox.Checked)
             //            {
             //                for (var i = 0; i <= MyStrategy.Universe.GridSize; i++)
             //                    for (var j = 0; j <= MyStrategy.Universe.GridSize; j++)
