@@ -95,9 +95,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             var duration = runTickTimer.ElapsedMilliseconds;
             if (duration > 500)
                 Universe.Print($"StepTime {duration:f2} ms");
-
-            //if (duration > 10000)
-            //    throw new Exception("Step time is greater than maximum.");
         }
 
         private void UpdateUnitsStatus(World world)

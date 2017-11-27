@@ -19,7 +19,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public Universe Universe = MyStrategy.Universe;
         public SortedList<int, BonusMap> BonusMapList = new SortedList<int, BonusMap>();
         private readonly BonusMap StaticMap;
-        public Dictionary<Point, double> possibleRays = new Dictionary<Point, double>();
+        //public Dictionary<Point, double> possibleRays = new Dictionary<Point, double>();
 
         public BonusMapCalculator()
         {
@@ -31,47 +31,22 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public AbsolutePosition GetBonusMovePoint(Squad squad)
         {
+            var timer = new Stopwatch();
+            timer.Restart();
             var map = GenerateMap(squad);
 
-            int angleStep = 4;
-            double radius = squad.CruisingSpeed * squad.ExpectedTicksToNextUpdate * 1.2;
-            
-            var squadCenterUnit = squad.Units.GetCentralUnit();
-            var squadCenter = new Point(squadCenterUnit.X, squadCenterUnit.Y);
-            //var possibleRays = new Dictionary<Point, double>();
-            possibleRays = new Dictionary<Point, double>();
+            var possibleRays = GeneratePossibleRays(squad, map);
 
-            for (int angle = 0; angle < 360; angle += angleStep)
-            {
-                double angleSI = Math.PI / 180 * angle;
-                var possibleDestination = new Point(squadCenter.X + radius * Math.Sin(angleSI), squadCenter.Y + radius * Math.Cos(angleSI));
-                if (possibleDestination.X < 0 || possibleDestination.Y < 0 || possibleDestination.X >= 1024 || possibleDestination.Y >= 1024)
-                    continue;
-                var cellValuesOnRay = new List<double>();
+            var chosenDestination = GetBestDestination(possibleRays);
 
-                for (int i = (int)Math.Min(possibleDestination.X, squadCenter.X); i <= (int)Math.Max(possibleDestination.X, squadCenter.X); i++)
-                    for (int j = (int)Math.Min(possibleDestination.Y, squadCenter.Y); j <= (int)Math.Max(possibleDestination.Y, squadCenter.Y); j++)
-                    {
-                        var worldPoint = new Point(i, j);
-                        var isNearRay =
-                            Geom.SegmentCircleIntersects(possibleDestination, squadCenter, worldPoint,
-                                (double) MapCellWidth / 2);
-                        if (isNearRay)
-                        {
-                            var mapX = (int)Math.Round(i / SizeWorldMapKoeff);
-                            var mapY = (int)Math.Round(j / SizeWorldMapKoeff);
-                            if (mapX >= 0 && mapY >= 0 && mapX < MapPointsAmount && mapY < MapPointsAmount)
-                            {
-                                cellValuesOnRay.Add(map.Table[mapX, mapY]);
-                                //Universe.Print($"{worldPoint} is near line between {possibleDestination} and {squadCenter}.");
-                            }
+            timer.Stop();
+            Universe.Print($"Squad {(Squads)squad.Id}, spent on BonusMap {timer.ElapsedMilliseconds} ms.");
 
-                        }
-                    }
+            return chosenDestination;
+        }
 
-                possibleRays.Add(possibleDestination, cellValuesOnRay.Average());
-            }
-
+        private static AbsolutePosition GetBestDestination(Dictionary<Point, double> possibleRays)
+        {
             var maxRayWin = Double.MinValue;
             var chosenDestination = new Point();
             foreach (var ray in possibleRays)
@@ -80,14 +55,59 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     maxRayWin = ray.Value;
                     chosenDestination = ray.Key;
                 }
-
             return chosenDestination.ToAbsolutePosition();
+        }
+
+        private static Dictionary<Point, double> GeneratePossibleRays(Squad squad, BonusMap map)
+        {
+            const int angleStep = 4;
+            double radius = squad.CruisingSpeed * squad.ExpectedTicksToNextUpdate * 1.2;
+
+            var squadCenterUnit = squad.Units.GetCentralUnit();
+            var squadCenter = new Point(squadCenterUnit.X, squadCenterUnit.Y);
+            var possibleRays = new Dictionary<Point, double>();
+
+            for (int angle = 0; angle < 360; angle += angleStep)
+            {
+                double angleSI = Math.PI / 180 * angle;
+                var possibleDestination = new Point(squadCenter.X + radius * Math.Sin(angleSI),
+                    squadCenter.Y + radius * Math.Cos(angleSI));
+                if (possibleDestination.X < 0 || possibleDestination.Y < 0 || possibleDestination.X >= 1024 ||
+                    possibleDestination.Y >= 1024)
+                    continue;
+                var cellValuesOnRay = new List<double>();
+
+                for (int i = (int) Math.Min(possibleDestination.X, squadCenter.X);
+                    i <= (int) Math.Max(possibleDestination.X, squadCenter.X);
+                    i++)
+                for (int j = (int) Math.Min(possibleDestination.Y, squadCenter.Y);
+                    j <= (int) Math.Max(possibleDestination.Y, squadCenter.Y);
+                    j++)
+                {
+                    var worldPoint = new Point(i, j);
+                    var isNearRay =
+                        Geom.SegmentCircleIntersects(possibleDestination, squadCenter, worldPoint,
+                            (double) MapCellWidth / 2);
+                    if (isNearRay)
+                    {
+                        var mapX = (int) Math.Round(i / SizeWorldMapKoeff);
+                        var mapY = (int) Math.Round(j / SizeWorldMapKoeff);
+                        if (mapX >= 0 && mapY >= 0 && mapX < MapPointsAmount && mapY < MapPointsAmount)
+                        {
+                            cellValuesOnRay.Add(map.Table[mapX, mapY]);
+                            //Universe.Print($"{worldPoint} is near line between {possibleDestination} and {squadCenter}.");
+                        }
+                    }
+                }
+
+                possibleRays.Add(possibleDestination, cellValuesOnRay.Average());
+            }
+            return possibleRays;
         }
 
         private BonusMap GenerateMap(Squad squad)
         {
-            var timer = new Stopwatch();
-            timer.Restart();
+
             if (!squad.Units.Any())
                 return new BonusMap();
 
@@ -104,41 +124,51 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var predictedWorldState = MyStrategy.Predictor.GetStateOnTick(Universe.World.TickIndex + squad.ExpectedTicksToNextUpdate);
             var allUnits = predictedWorldState.MyUnits.GetCombinedList(predictedWorldState.OppUnits);
 
-            var aeroCollisionMap = GetAeroCollisionMap(allUnits, squadIds, squadCenter, MapType.Flat)
-                .SetWeight(-1);
-            squadBonusMapList.Add(aeroCollisionMap);
-            BonusMapList.Add(1, aeroCollisionMap);
+            var firstUnit = squad.Units.FirstOrDefault();
+            if (firstUnit != null && firstUnit.IsAerial)
+            {
+                var aeroDangerMap = GetAeroDangerMap(predictedWorldState.OppUnits, squadCenter, MapType.Additive)
+                    .SetWeight(-1);
+                squadBonusMapList.Add(aeroDangerMap);
+                BonusMapList.Add(BonusMapList.Count, aeroDangerMap);
 
-            var aeroDangerMap = GetAeroDangerMap(predictedWorldState.OppUnits, squadCenter, MapType.Additive)
-                .SetWeight(-1);
-            squadBonusMapList.Add(aeroDangerMap);
-            BonusMapList.Add(2, aeroDangerMap);
+                var aeroCollisionMap = GetAeroCollisionMap(allUnits, squadIds, squadCenter, MapType.Flat)
+                    .SetWeight(-1);
+                squadBonusMapList.Add(aeroCollisionMap);
+                BonusMapList.Add(BonusMapList.Count, aeroCollisionMap);
 
-            //if (squad.IsScout)
-            //{
-            //    
-            //}
-            var scoutWinMap = GetScoutBonusMap(predictedWorldState.OppUnits, squadCenter, squad.Units.First().VisionRange, MapType.Additive)
-                .SetWeight(1);
-            squadBonusMapList.Add(scoutWinMap);
-            BonusMapList.Add(3, scoutWinMap);
+            }
+            else
+            {
+                //Ground Danger map
+                //Ground Collision map   //var groundCollision = GenerateMap(enemyUnits.Where(u => !u.IsAerial && !squadIds.Contains(u.Id)).ToList(), 10, MapPointsAmount);
+            }
 
 
-            //var groundCollision = GenerateMap(enemyUnits.Where(u => !u.IsAerial && !squadIds.Contains(u.Id)).ToList(), 10, MapPointsAmount);
+            if (squad.IsScout)
+            {
+                var scoutWinMap = GetScoutBonusMap(predictedWorldState.OppUnits, squadCenter, squad.Units.First().VisionRange, MapType.Additive)
+                    .SetWeight(1);
+                squadBonusMapList.Add(scoutWinMap);
+                BonusMapList.Add(BonusMapList.Count, scoutWinMap);
+            }
+            else
+            {
+                //attackWinMap
+            }
+
+
 
             squadBonusMapList.Add(StaticMap);
-            BonusMapList.Add(4, StaticMap);
+            BonusMapList.Add(BonusMapList.Count, StaticMap);
 
             var resultingMap = BonusMapSum(squadBonusMapList);
-            BonusMapList.Add(5, resultingMap);
+            BonusMapList.Add(BonusMapList.Count, resultingMap);
             //BonusMapList.Add(squad.Id, scoutWinMap);
-            var tileListCheck = aeroCollisionMap.GetTileList();
-            var tileListCheck2 = aeroDangerMap.GetTileList();
-            var tileListCheck3 = scoutWinMap.GetTileList();
-            var tileListCheck4 = resultingMap.GetTileList();
 
-            timer.Stop();
-            Universe.Print($"Spent on BonusMap {timer.ElapsedMilliseconds} ms");
+
+
+
             return resultingMap;
         }
 
@@ -152,7 +182,20 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 for (int j = 0; j < MapPointsAmount; j++)
                     sumMap.Table[i, j] += map.Table[i, j] * map.Weight;
             }
+
+        CheckTileGeneration(squadBonusMapList);
+
             return sumMap.Trim();
+        }
+
+        private static void CheckTileGeneration(List<BonusMap> squadBonusMapList)
+        {
+#if DEBUG
+            foreach (var squadMap in squadBonusMapList)
+            {
+                var tileList = squadMap.GetTileList();
+            }
+#endif
         }
 
         private void ClearBonusMapList(Squad squad)

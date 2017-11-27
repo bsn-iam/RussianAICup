@@ -28,14 +28,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public bool IsScout { get; internal set; } = false;
         public bool IsCwDirection { get; internal set; } = true;
 
-        private int previousCallTick = 0;
-        private int lastCallTick = 0;
+        public int PreviousCallTick { get; internal set; } = 0;
+        public int LastCallTick { get; internal set; } = 0;
 
         public int ExpectedTicksToNextUpdate
         {
             get
             {
-                var duration = lastCallTick - previousCallTick;
+                var duration = LastCallTick - PreviousCallTick;
                 if (duration > 1000)
                     MyStrategy.Universe.Print("Huge time from previous step.");
 
@@ -254,8 +254,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public void UpdateLastCallTime(int thisCallTick)
         {
-            previousCallTick = lastCallTick;
-            lastCallTick = thisCallTick;
+            PreviousCallTick = LastCallTick;
+            LastCallTick = thisCallTick;
         }
 
 
