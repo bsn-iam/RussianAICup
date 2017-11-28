@@ -48,12 +48,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
                     timer.Start();
                     while (!Visualizer.Visualizer.Done || timer.ElapsedMilliseconds < 13)
                     {
+                        timerVisualizer.Stop();
                     }
-                    //Universe.Print("Time for visualizer " + timer.ElapsedMilliseconds);
                     timer.Stop();
+                    timerVisualizer.Start();
                 }
             }
-            if (timerVisualizer.ElapsedMilliseconds > 500)
+            if (timerVisualizer.ElapsedMilliseconds > 1000)
                Universe.Print("Time for visualizer " + timerVisualizer.ElapsedMilliseconds);
             timerVisualizer.Stop();
 

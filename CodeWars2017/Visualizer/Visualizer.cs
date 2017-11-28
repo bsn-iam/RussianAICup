@@ -206,7 +206,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             var squadData = MyStrategy.BonusCalculator.BonusMapList.FirstOrDefault(s => s.Key.ToString() == _form.lookAtTextBox.Text.Trim()).Value;
             var bonusMapId = 0;
+            var squadId = 0;
             int.TryParse(_form.mapIdTextBox.Text.Trim(), out bonusMapId);
+            int.TryParse(_form.lookAtTextBox.Text.Trim(), out squadId);
 
             if (squadData != null && bonusMapId < squadData.Count)
             {
@@ -224,17 +226,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                             if (tile.Value > 0.9999)
                                 FillRect(Color.YellowGreen, tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
 
-                            //DrawText($"{tile.Value:f4}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
+                            DrawText($"{tile.Value:f4}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
                         }
                 }
-                    
+
             }
 
-            //foreach (var ray in MyStrategy.BonusCalculator.PossibleRays)
-            //{
-            //    var color01 = new Color01(1, 1 - ray.Value, 1 - ray.Value);
-            //    FillCircle(color01.ToColor(), ray.Key.X, ray.Key.Y, 1);
-            //}
+            if (squadData != null)
+            {
+                foreach (var rays in MyStrategy.BonusCalculator.PossibleRays)
+                {
+                    if (rays.Key == squadId)
+                    {
+                        var maxRay = rays.Value.OrderByDescending(r => r.Value).FirstOrDefault();
+                        foreach (var ray in rays.Value)
+                        {
+                            var color01 = new Color01(1, 1 - ray.Value, 1 - ray.Value);
+                            if (ray.Key == maxRay.Key)
+                                FillCircle(Color.Green, ray.Key.X, ray.Key.Y, 3);
+                            FillCircle(color01.ToColor(), ray.Key.X, ray.Key.Y, 1);
+                        }
+
+                    }
+
+                }
+            }
+
 
             foreach (var squad in MyStrategy.SquadCalculator.SquadList.Where(s =>s.IsScout))
             {

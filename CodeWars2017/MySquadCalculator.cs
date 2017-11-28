@@ -158,7 +158,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     chosenSquad.DoMove(ActionList, requiredPosition);
                 }
 
-                if (!chosenSquad.IsScout)
+                if (!chosenSquad.IsScout && chosenSquad.Id != (int)Squads.Fighters)
                 {
                     if (aggression > 1.2)
                     {
@@ -170,8 +170,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
                         if (chosenSquad.Id == (int) Squads.Helicopters)
                             chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int) Squads.Ifvs));
-                        if (chosenSquad.Id == (int) Squads.Fighters)
-                            chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int) Squads.Tanks));
+                        //if (chosenSquad.Id == (int) Squads.Fighters)
+                        //    chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int) Squads.Tanks));
                         if (chosenSquad.Id == (int) Squads.Arrvs)
                             chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int) Squads.Fighters));
 
@@ -197,8 +197,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 var persentageToRemove = 2;
 
-                var enemyUnits = Universe.OppUnits.GetClosestUnits(persentageToRemove);
-                var myUnits = Universe.MyUnits.GetClosestUnits(persentageToRemove);
+                var enemyUnits = Universe.OppUnits.GetClosestUnits(persentageToRemove).Where(u =>u.Type!= VehicleType.Fighter).ToList();
+                var myUnits = Universe.MyUnits.GetClosestUnits(persentageToRemove).Where(u => u.Type != VehicleType.Fighter).ToList();
 
                 var enemy = new Squad(enemyUnits);
                 var me = new Squad(myUnits);
