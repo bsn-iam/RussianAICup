@@ -202,24 +202,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             }
             #endregion
 
-                #region BonusMap
+            #region BonusMap
 
-                var bonusMap = MyStrategy.BonusCalculator.BonusMapList.FirstOrDefault(m => m.Key.ToString() == _form.mapIdTextBox.Text.Trim());
-            if (bonusMap.Value != null)
+            var squadData = MyStrategy.BonusCalculator.BonusMapList.FirstOrDefault(s => s.Key.ToString() == _form.lookAtTextBox.Text.Trim()).Value;
+            var bonusMapId = 0;
+            int.TryParse(_form.mapIdTextBox.Text.Trim(), out bonusMapId);
+
+            if (squadData != null && bonusMapId < squadData.Count)
             {
-                var tileList = bonusMap.Value.GetTileList();
+                
+                if (lookAtSquadId != null)
+                {
+                    var tileList = squadData[bonusMapId].GetTileList();
 
-                foreach (var tile in tileList)
-                    if (Math.Abs(tile.Value) > Double.Epsilon)
-                    { 
-                        var color01 = new Color01(1, 1-tile.Value, 1-tile.Value);
-                        FillRect(color01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
+                    foreach (var tile in tileList)
+                        if (Math.Abs(tile.Value) > Double.Epsilon)
+                        {
+                            var color01 = new Color01(1, 1 - tile.Value, 1 - tile.Value);
+                            FillRect(color01.ToColor(), tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
 
-                        if (tile.Value  > 0.9999)
-                            FillRect(Color.YellowGreen, tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
+                            if (tile.Value > 0.9999)
+                                FillRect(Color.YellowGreen, tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
 
-                        //DrawText($"{tile.Value:f4}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
-                    }
+                            //DrawText($"{tile.Value:f4}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
+                        }
+                }
+                    
             }
 
             //foreach (var ray in MyStrategy.BonusCalculator.PossibleRays)

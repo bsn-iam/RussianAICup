@@ -2,6 +2,7 @@
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
@@ -125,7 +126,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public double Dispersion => Units.GetUnitsDispersionValue();
 
-        private double AirDefence
+        public double AirDefence
         {
             get
             {
@@ -135,7 +136,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return force;
             }
         }
-        private double GroundDefence
+        public double GroundDefence
         {
             get
             {
@@ -146,7 +147,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
-        private double AirForce
+        public double AirForce
         {
             get
             {
@@ -156,7 +157,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return force;
             }
         }
-        private double GroundForce
+        public double GroundForce
         {
             get
             {
@@ -299,6 +300,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
 
         public int NukeMarkerCounter { get; set; }
+
+        public double Radius
+        {
+            get
+            {
+                var centerDistanceList = new List<double>();
+                var centerPosition = Units.GetUnitsCenter();
+                foreach (var unit in Units)
+                    centerDistanceList.Add(unit.GetDistanceTo(centerPosition.X, centerPosition.Y));
+                return centerDistanceList.Average();
+            }
+        }
+
+        public bool IsAerial
+        {
+            get
+            {
+                if (!Units.Any())
+                    return true;
+                var totalCount = Units.Count;
+                var aerialCount = Units.Count(u => u.IsAerial);
+                var groundCount = totalCount - aerialCount;
+
+                return aerialCount > groundCount;
+            }
+        }
 
         internal double GetNukeDamage(AbsolutePosition targetPoint, double range)
         {

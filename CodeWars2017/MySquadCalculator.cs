@@ -50,6 +50,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (ActionList.Count == 0)
                 universe.Print($"Action list is ready for moves.");
 
+            ShowSquadList();
+
             GenerateActions();
         }
 
@@ -121,7 +123,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void GenerateActions()
         {
-            ShowSquadList();
             CombineSquadsOnStart();
 
             if (ActionList.Count == 0)
@@ -150,7 +151,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             if (chosenSquad == null) return;
 
-            if (chosenSquad.IsScout)
+            if (chosenSquad.IsScout || chosenSquad.Id == (int)Squads.Fighters)
                 {
                     //var requiredPosition = GeneratePositionForScout(squad);
                     var requiredPosition = BonusCalculator.GetBonusMovePoint(chosenSquad);

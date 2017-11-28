@@ -17,7 +17,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public const int MapCellWidth = WorldPointsAmount / MapPointsAmount;
         public double[,] Table = new double[MapPointsAmount, MapPointsAmount];
         public Universe Universe = MyStrategy.Universe;
-        public SortedList<int, BonusMap> BonusMapList = new SortedList<int, BonusMap>();
+        public SortedList<int, List<BonusMap>> BonusMapList = new SortedList<int, List<BonusMap>>();
         private readonly BonusMap StaticMap;
         //public Dictionary<Point, double> possibleRays = new Dictionary<Point, double>();
 
@@ -44,6 +44,76 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             return chosenDestination;
         }
+
+        private BonusMap GenerateMap(Squad squad)
+        {
+            if (!squad.Units.Any())
+                return new BonusMap();
+
+            var squadCenter = squad.Units.GetUnitsCenter();
+            List<long> squadIds = new List<long>();
+            foreach (var unit in squad.Units)
+                squadIds.Add(unit.Id);
+
+            ClearBonusMapList(squad);
+
+            List<BonusMap> squadBonusMapList = new List<BonusMap>();
+
+            var predictedWorldState = MyStrategy.Predictor.GetStateOnTick(Universe.World.TickIndex + squad.ExpectedTicksToNextUpdate);
+            var allUnits = predictedWorldState.MyUnits.GetCombinedList(predictedWorldState.OppUnits);
+
+
+            if (squad.IsScout)
+            {
+                var aeroDangerMap = GetAeroDangerMap(predictedWorldState.OppUnits, squadCenter, MapType.Additive)
+                    .SetWeight(-1);
+                squadBonusMapList.Add(aeroDangerMap);
+
+                var aeroCollisionMap = GetAeroCollisionMap(allUnits, squadIds, squadCenter, MapType.Flat)
+                    .SetWeight(-1);
+                squadBonusMapList.Add(aeroCollisionMap);
+
+                var scoutWinMap = GetScoutBonusMap(predictedWorldState.OppUnits, squadCenter, squad.Units.First().VisionRange, MapType.Additive)
+                    .SetWeight(1);
+                squadBonusMapList.Add(scoutWinMap);
+            }
+            else
+            {
+                var commonWinMap = GetCommonWinMap(predictedWorldState.OppUnits, squad, MapType.Additive).SetWeight(1);
+                squadBonusMapList.Add(commonWinMap);
+
+                var aeroCollisionMap = GetAeroCollisionMap(predictedWorldState.MyUnits, squadIds, squadCenter, MapType.Flat)
+                    .SetWeight(-1);
+                squadBonusMapList.Add(aeroCollisionMap);
+
+                //attackWinMap
+            }
+
+            squadBonusMapList.Add(StaticMap);
+
+            var resultingMap = BonusMapSum(squadBonusMapList);
+            squadBonusMapList.Add(resultingMap);
+
+            BonusMapList.Add(squad.Id, squadBonusMapList);
+            return resultingMap;
+        }
+
+        private BonusMap BonusMapSum(List<BonusMap> squadBonusMapList)
+        {
+            var sumMap= new BonusMap();
+            foreach (var map in squadBonusMapList)
+            {
+                map.Trim();
+                for (int i = 0; i < MapPointsAmount; i++)
+                for (int j = 0; j < MapPointsAmount; j++)
+                    sumMap.Table[i, j] += map.Table[i, j] * map.Weight;
+            }
+
+            CheckTileGeneration(squadBonusMapList);
+
+            return sumMap.Trim();
+        }
+
 
         private static AbsolutePosition GetBestDestination(Dictionary<Point, double> possibleRays)
         {
@@ -77,116 +147,34 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     continue;
                 var cellValuesOnRay = new List<double>();
 
-                for (int i = (int) Math.Min(possibleDestination.X, squadCenter.X);
-                    i <= (int) Math.Max(possibleDestination.X, squadCenter.X);
+                for (int i = (int)Math.Min(possibleDestination.X, squadCenter.X);
+                    i <= (int)Math.Max(possibleDestination.X, squadCenter.X);
                     i++)
-                for (int j = (int) Math.Min(possibleDestination.Y, squadCenter.Y);
-                    j <= (int) Math.Max(possibleDestination.Y, squadCenter.Y);
-                    j++)
-                {
-                    var worldPoint = new Point(i, j);
-                    var isNearRay =
-                        Geom.SegmentCircleIntersects(possibleDestination, squadCenter, worldPoint,
-                            (double) MapCellWidth / 2);
-                    if (isNearRay)
+                    for (int j = (int)Math.Min(possibleDestination.Y, squadCenter.Y);
+                        j <= (int)Math.Max(possibleDestination.Y, squadCenter.Y);
+                        j++)
                     {
-                        var mapX = (int) Math.Round(i / SizeWorldMapKoeff);
-                        var mapY = (int) Math.Round(j / SizeWorldMapKoeff);
-                        if (mapX >= 0 && mapY >= 0 && mapX < MapPointsAmount && mapY < MapPointsAmount)
+                        var worldPoint = new Point(i, j);
+                        var isNearRay =
+                            Geom.SegmentCircleIntersects(possibleDestination, squadCenter, worldPoint,
+                                (double)MapCellWidth / 2);
+                        if (isNearRay)
                         {
-                            cellValuesOnRay.Add(map.Table[mapX, mapY]);
-                            //Universe.Print($"{worldPoint} is near line between {possibleDestination} and {squadCenter}.");
+                            var mapX = (int)Math.Round(i / SizeWorldMapKoeff);
+                            var mapY = (int)Math.Round(j / SizeWorldMapKoeff);
+                            if (mapX >= 0 && mapY >= 0 && mapX < MapPointsAmount && mapY < MapPointsAmount)
+                            {
+                                cellValuesOnRay.Add(map.Table[mapX, mapY]);
+                                //Universe.Print($"{worldPoint} is near line between {possibleDestination} and {squadCenter}.");
+                            }
                         }
                     }
-                }
 
                 possibleRays.Add(possibleDestination, cellValuesOnRay.Average());
             }
             return possibleRays;
         }
 
-        private BonusMap GenerateMap(Squad squad)
-        {
-
-            if (!squad.Units.Any())
-                return new BonusMap();
-
-            var squadCenter = squad.Units.GetUnitsCenter();
-            List<long> squadIds = new List<long>();
-            foreach (var unit in squad.Units)
-                squadIds.Add(unit.Id);
-
-            ClearBonusMapList(squad);
-            BonusMapList = new SortedList<int, BonusMap>();
-
-            List<BonusMap> squadBonusMapList = new List<BonusMap>();
-
-            var predictedWorldState = MyStrategy.Predictor.GetStateOnTick(Universe.World.TickIndex + squad.ExpectedTicksToNextUpdate);
-            var allUnits = predictedWorldState.MyUnits.GetCombinedList(predictedWorldState.OppUnits);
-
-            var firstUnit = squad.Units.FirstOrDefault();
-            if (firstUnit != null && firstUnit.IsAerial)
-            {
-                var aeroDangerMap = GetAeroDangerMap(predictedWorldState.OppUnits, squadCenter, MapType.Additive)
-                    .SetWeight(-1);
-                squadBonusMapList.Add(aeroDangerMap);
-                BonusMapList.Add(BonusMapList.Count, aeroDangerMap);
-
-                var aeroCollisionMap = GetAeroCollisionMap(allUnits, squadIds, squadCenter, MapType.Flat)
-                    .SetWeight(-1);
-                squadBonusMapList.Add(aeroCollisionMap);
-                BonusMapList.Add(BonusMapList.Count, aeroCollisionMap);
-
-            }
-            else
-            {
-                //Ground Danger map
-                //Ground Collision map   //var groundCollision = GenerateMap(enemyUnits.Where(u => !u.IsAerial && !squadIds.Contains(u.Id)).ToList(), 10, MapPointsAmount);
-            }
-
-
-            if (squad.IsScout)
-            {
-                var scoutWinMap = GetScoutBonusMap(predictedWorldState.OppUnits, squadCenter, squad.Units.First().VisionRange, MapType.Additive)
-                    .SetWeight(1);
-                squadBonusMapList.Add(scoutWinMap);
-                BonusMapList.Add(BonusMapList.Count, scoutWinMap);
-            }
-            else
-            {
-                //attackWinMap
-            }
-
-
-
-            squadBonusMapList.Add(StaticMap);
-            BonusMapList.Add(BonusMapList.Count, StaticMap);
-
-            var resultingMap = BonusMapSum(squadBonusMapList);
-            BonusMapList.Add(BonusMapList.Count, resultingMap);
-            //BonusMapList.Add(squad.Id, scoutWinMap);
-
-
-
-
-            return resultingMap;
-        }
-
-        private BonusMap BonusMapSum(List<BonusMap> squadBonusMapList)
-        {
-            var sumMap= new BonusMap();
-            foreach (var map in squadBonusMapList)
-            {
-                map.Trim();
-                for (int i = 0; i < MapPointsAmount; i++)
-                for (int j = 0; j < MapPointsAmount; j++)
-                    sumMap.Table[i, j] += map.Table[i, j] * map.Weight;
-            }
-
-        CheckTileGeneration(squadBonusMapList);
-
-            return sumMap.Trim();
-        }
 
         private static void CheckTileGeneration(List<BonusMap> squadBonusMapList)
         {
@@ -200,7 +188,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void ClearBonusMapList(Squad squad)
         {
-            foreach (var map in new SortedList<int, BonusMap>(BonusMapList))
+            foreach (var map in new SortedList<int, List<BonusMap>>(BonusMapList))
                 if (map.Key == squad.Id)
                     BonusMapList.Remove(map.Key);
         }
@@ -228,15 +216,47 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private BonusMap GetAeroDangerMap(List<Vehicle> enemyUnits, AbsolutePosition squadCenter, MapType mapType)
         {
             const double affectedRange = 500;
-            var unitsForMap = enemyUnits.Where(
+            var enemyUnitsForMap = enemyUnits.Where(
                 u => (u.X - squadCenter.X) < affectedRange &&
                      (u.Y - squadCenter.Y) < affectedRange &&
                      u.Type != VehicleType.Tank
             ).ToList();
 
             var map = new BonusMap(mapType);
-            foreach (var unit in unitsForMap)
-                map.AddUnitCalculation(unit, unit.AerialAttackRange * 1, unit.AerialDamage, unit.AerialAttackRange *2.5);
+            foreach (var unit in enemyUnitsForMap)
+                map.AddUnitCalculation(unit, unit.AerialAttackRange * 1, unit.AerialDamage, unit.AerialAttackRange * 2.5);
+
+            return map;
+        }
+
+        private BonusMap GetCommonWinMap(List<Vehicle> enemyUnits, Squad squad, MapType mapType)
+        {
+            const double affectedRange = 500;
+            var squadCenter = squad.Units.GetUnitsCenter();
+            var enemyUnitsForMap = enemyUnits.Where(
+                u => (u.X - squadCenter.X) < affectedRange &&
+                     (u.Y - squadCenter.Y) < affectedRange &&
+                     u.Type != VehicleType.Tank
+            ).ToList();
+
+
+            var isAerialSquad = squad.IsAerial;
+
+            var myAeroWin = (squad.AirForce + squad.AirDefence ) /squad.Units.Count;
+            var myGroundoWin = ( squad.GroundForce + squad.GroundDefence ) / squad.Units.Count;
+
+
+            var map = new BonusMap(mapType);
+            foreach (var enemyUnit in enemyUnitsForMap)
+            {
+                var enemyWin = isAerialSquad
+                    ? (enemyUnit.AerialDamage + enemyUnit.AerialDefence) * enemyUnit.GetUnitHealthIndex()
+                    : (enemyUnit.GroundDamage + enemyUnit.GroundDefence) * enemyUnit.GetUnitHealthIndex();
+
+                var myWin = enemyUnit.IsAerial ? myAeroWin : myGroundoWin;
+
+                map.AddUnitCalculation(enemyUnit, enemyUnit.AerialAttackRange * 1 + squad.Radius, myWin - enemyWin, enemyUnit.AerialAttackRange * 2.5);
+            }
 
             return map;
         }
