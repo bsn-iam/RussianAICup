@@ -295,7 +295,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 foreach (var unit in Units)
                     if (speed > unit.MaxSpeed)
                     speed = unit.MaxSpeed;
-                return speed;
+                return speed * 0.6;
             }
         }
 

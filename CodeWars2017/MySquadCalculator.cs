@@ -155,7 +155,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 {
                     //var requiredPosition = GeneratePositionForScout(squad);
                     var requiredPosition = BonusCalculator.GetBonusMovePoint(chosenSquad);
-                    chosenSquad.DoMove(ActionList, requiredPosition);
+                    chosenSquad.DoMove(ActionList, requiredPosition, chosenSquad.CruisingSpeed);
                 }
 
                 if (!chosenSquad.IsScout && chosenSquad.Id != (int)Squads.Fighters)
