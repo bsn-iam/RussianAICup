@@ -61,7 +61,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 squadIds.Add(unit.Id);
 
             
-
             List<BonusMap> squadBonusMapList = new List<BonusMap>();
 
             var predictedWorldState = MyStrategy.Predictor.GetStateOnTick(Universe.World.TickIndex + squad.ExpectedTicksToNextUpdate);
@@ -243,7 +242,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private BonusMap GetCommonWinMap(List<Vehicle> enemyUnits, Squad squad, MapType mapType)
         {
-            const double affectedRange = 1000;
+            const double affectedRange = 1200;
             var squadCenter = squad.Units.GetUnitsCenter();
             var enemyUnitsForMap = enemyUnits.Where(
                 u => (u.X - squadCenter.X) < affectedRange &&
@@ -254,18 +253,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             var isAerialSquad = squad.IsAerial;
 
-            //var myAeroWin = (squad.AirForce + squad.AirDefence) / squad.Units.Count;
-            //var myGroundoWin = (squad.GroundForce + squad.GroundDefence) / squad.Units.Count;
-            var myAeroWin = (squad.AirForce) / squad.Units.Count * squad.AirDefence * 1.2;
-            var myGroundoWin = (squad.GroundForce) / squad.Units.Count * squad.GroundDefence * 1.2;
+            var myAeroWin = (squad.AirForce) / squad.Units.Count * squad.AirDefence * 1.5;
+            var myGroundoWin = (squad.GroundForce) / squad.Units.Count * squad.GroundDefence *1.5;
 
 
             var map = new BonusMap(mapType);
             foreach (var enemyUnit in enemyUnitsForMap)
             {
-                //var enemyWin = isAerialSquad
-                //    ? (enemyUnit.AerialDamage + enemyUnit.AerialDefence) * enemyUnit.GetUnitHealthIndex()
-                //    : (enemyUnit.GroundDamage + enemyUnit.GroundDefence) * enemyUnit.GetUnitHealthIndex();
                 var enemyWin = isAerialSquad
                     ? (enemyUnit.AerialDamage) * enemyUnit.GetUnitHealthIndex() * enemyUnit.AerialDefence * enemyUnit.GetUnitHealthIndex()
                     : (enemyUnit.GroundDamage) * enemyUnit.GetUnitHealthIndex() * enemyUnit.GroundDefence * enemyUnit.GetUnitHealthIndex();

@@ -149,45 +149,37 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var aggression = Aggression;
             var chosenSquad = SquadList.GetIteratorSquadListActive().OrderBy(s => s.LastCallTick).FirstOrDefault();
 
-            if (chosenSquad == null) return;
+            if (chosenSquad == null)
+                return;
 
-            if (chosenSquad.IsScout || chosenSquad.Id == (int)Squads.Fighters)
+
+            if (chosenSquad.IsScout || chosenSquad.Id == (int)Squads.Fighters || chosenSquad.Id == (int)Squads.Helicopters)
+            {
+                //var requiredPosition = GeneratePositionForScout(squad);
+
+                var requiredSpeed = chosenSquad.IsScout ? Universe.Game.FighterSpeed : chosenSquad.CruisingSpeed;
+
+                var requiredPosition = BonusCalculator.GetBonusMovePoint(chosenSquad);
+                chosenSquad.DoMove(ActionList, requiredPosition, requiredSpeed);
+            }
+            else
+            {
+                if (aggression > 1.2)
                 {
-                    //var requiredPosition = GeneratePositionForScout(squad);
-                    var requiredPosition = BonusCalculator.GetBonusMovePoint(chosenSquad);
-                    chosenSquad.DoMove(ActionList, requiredPosition, chosenSquad.CruisingSpeed);
+                    //Atack follow mode
+                    if (chosenSquad.Id == (int)Squads.Tanks || chosenSquad.Id == (int)Squads.Ifvs)
+                        chosenSquad.DoMove(ActionList, chosenSquad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
+                    //if (chosenSquad.Id == (int)Squads.Helicopters)
+                    //    chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int)Squads.Ifvs));
+                    if (chosenSquad.Id == (int)Squads.Arrvs)
+                        chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int)Squads.Fighters));
                 }
-
-                if (!chosenSquad.IsScout && chosenSquad.Id != (int)Squads.Fighters)
+                else
                 {
-                    if (aggression > 1.2)
-                    {
-                        //Atack follow mode
-
-                        if (chosenSquad.Id == (int) Squads.Tanks || chosenSquad.Id == (int) Squads.Ifvs)
-                            chosenSquad.DoMove(ActionList, chosenSquad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
-
-
-                        if (chosenSquad.Id == (int) Squads.Helicopters)
-                            chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int) Squads.Ifvs));
-                        //if (chosenSquad.Id == (int) Squads.Fighters)
-                        //    chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int) Squads.Tanks));
-                        if (chosenSquad.Id == (int) Squads.Arrvs)
-                            chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int) Squads.Fighters));
-
-                        //Attack nearest mode
-                        //var nearestTarget = Universe.MyUnits.GetPositionOfNearestTarget(Universe.OppUnits);
-                        //squad.DoMove(ActionList, nearestTarget, Universe.Game.TankSpeed);
-                    }
-                    else
-                    {
-                        //going to deff
-                        // if (Universe.World.TickIndex % 5 == 0)
-                        //     squad.DoRotate(ActionList);
-                        // else
-                        chosenSquad.DoMove(ActionList, Universe.MapConerLeftUp);
-                    }
+                    //going to deff
+                    chosenSquad.DoMove(ActionList, Universe.MapConerLeftUp);
                 }
+            }
 
         }
 
@@ -197,8 +189,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 var persentageToRemove = 2;
 
-                var enemyUnits = Universe.OppUnits.GetClosestUnits(persentageToRemove).Where(u =>u.Type!= VehicleType.Fighter).ToList();
-                var myUnits = Universe.MyUnits.GetClosestUnits(persentageToRemove).Where(u => u.Type != VehicleType.Fighter).ToList();
+                var enemyUnits = Universe.OppUnits.GetClosestUnits(persentageToRemove)
+                    .Where(u => u.Type != VehicleType.Fighter)
+                    .Where(u => u.Type != VehicleType.Helicopter)
+                    .ToList();
+                var myUnits = Universe.MyUnits.GetClosestUnits(persentageToRemove)
+                    .Where(u => u.Type != VehicleType.Fighter)
+                    .Where(u => u.Type != VehicleType.Helicopter)
+                    .ToList();
 
                 var enemy = new Squad(enemyUnits);
                 var me = new Squad(myUnits);

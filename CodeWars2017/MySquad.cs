@@ -37,7 +37,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             get
             {
                 var duration = LastCallTick - PreviousCallTick;
-                if (duration > 1000)
+                if (duration > 1000 && LastCallTick !=0)
                     MyStrategy.Universe.Print("Huge time from previous step.");
 
                 duration = Math.Min(duration, 500);
@@ -335,6 +335,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 var distanceFromNuceCenter = unit.GetDistanceTo(targetPoint.X, targetPoint.Y);
                 var damageKoeff = (range - distanceFromNuceCenter) / range;
                 var unitForce = unit.AerialDamage + unit.AerialDefence + unit.GroundDamage + unit.GroundDefence;
+                //damage += unitForce * damageKoeff / unit.GetUnitHealthIndex();
                 damage += unitForce * damageKoeff;
             }
             return damage;
