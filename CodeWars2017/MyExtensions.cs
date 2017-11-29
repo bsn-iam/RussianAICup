@@ -191,15 +191,21 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             var targetPoint = new AbsolutePosition(targetUnit.X, targetUnit.Y);
 
+            //var predictedState = MyStrategy.Predictor.GetStateOnTick(universe.World.TickIndex + 30);
+            //var enemyUnits = predictedState.OppUnits.Where(u => u.Type != VehicleType.Arrv);
+            //var myUnits = predictedState.MyUnits.Where(u => u.Type != VehicleType.Arrv);
 
-            foreach (var enemyGuy in universe.OppUnits.Where(u => u.Type != VehicleType.Arrv))
+            var enemyUnits = universe.OppUnits.Where(u => u.Type != VehicleType.Arrv);
+            var myUnits = universe.MyUnits.Where(u => u.Type != VehicleType.Arrv);
+
+            foreach (var enemyGuy in enemyUnits)
             {
                 var distanceSquaredFromNuceCenter = targetUnit.GetSquaredDistanceTo(enemyGuy);
                 if (distanceSquaredFromNuceCenter < squaredRange)
                     enemyGuys.Add(enemyGuy);
             }
 
-            foreach (var myGuy in universe.MyUnits)
+            foreach (var myGuy in myUnits)
             {
                 var distanceSquaredFromNuceCenter = targetUnit.GetSquaredDistanceTo(myGuy);
                 if (distanceSquaredFromNuceCenter < squaredRange && targetUnit != myGuy)
@@ -212,15 +218,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
 
 
-        public static bool DoISeeThisUnit(this Vehicle myUnit, Vehicle targetUnit)
-        {
-            var squaredRange = myUnit.VisionRange * myUnit.VisionRange;
-            return myUnit.GetSquaredDistanceTo(targetUnit) < squaredRange;
-        }
+        public static bool DoISeeThisUnit(this Vehicle myUnit, Vehicle targetUnit) => 
+            DoISeeThisPoint(myUnit, new AbsolutePosition(targetUnit.X, targetUnit.Y));
 
         public static bool DoISeeThisPoint(this Vehicle myUnit, AbsolutePosition point)
         {
-            var squaredRange = myUnit.VisionRange * myUnit.VisionRange;
+            var squaredRange = myUnit.VisionRange * myUnit.VisionRange * 0.6;
             return myUnit.GetSquaredDistanceTo(point.X, point.Y) < squaredRange;
         }
         #endregion

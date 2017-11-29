@@ -362,14 +362,27 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             foreach (var player in MyStrategy.Universe.World.Players)
             {
-
                 var isNukeRequested = player.NextNuclearStrikeTickIndex > 0;
                 var isMe = player.IsMe;
                 var radius = MyStrategy.Universe.Game.TacticalNuclearStrikeRadius;
+                var scout = MyStrategy.Universe.MyUnits.FirstOrDefault(u =>
+                    u.Id == MyStrategy.SquadCalculator.NukeStrikeScoutId);
+
+                foreach (var squad in MyStrategy.SquadCalculator.SquadList)
+                    if (squad.NukeMarkerCounter > 0)
+                    {
+                        DrawCircle(Color.DarkOliveGreen, MyStrategy.SquadCalculator.NukeStrikePosition.X,
+                            MyStrategy.SquadCalculator.NukeStrikePosition.Y, radius - 2, 2);
+                        DrawCircle(Color.DarkOliveGreen, scout.X, scout.Y, 10, 2);
+                    }
+
+
                 if (isNukeRequested)
                     DrawCircle(isMe? Color.GreenYellow : Color.DeepPink, player.NextNuclearStrikeX, player.NextNuclearStrikeY, radius, 3);
+
                 var coolDownValue = player.RemainingNuclearStrikeCooldownTicks;
                 DrawText($"{coolDownValue}", 8, Brushes.Black, isMe ? 500 : 600, 25);
+                
             }
 
             #region Damage

@@ -98,7 +98,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
 
             var duration = runTickTimer.ElapsedMilliseconds;
             if (duration > 500)
-                Universe.Print($"StepTime {duration:f2} ms");
+                Universe.Print($"---StepTime [{duration:f2}] ms--");
         }
 
         private void UpdateUnitsStatus(World world)

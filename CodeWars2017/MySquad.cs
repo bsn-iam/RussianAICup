@@ -153,7 +153,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 double force = 0;
                 foreach (var unit in Units)
-                    force += unit.AerialDamage * unit.GetUnitHealthIndex();
+                    force += unit.AerialDamage;
                 return force;
             }
         }
@@ -163,7 +163,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 double force = 0;
                 foreach (var unit in Units)
-                    force += unit.GroundDamage * unit.GetUnitHealthIndex();
+                    force += unit.GroundDamage;
                 return force;
             }
         }
@@ -330,12 +330,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         internal double GetNukeDamage(AbsolutePosition targetPoint, double range)
         {
             double damage = 0;
+            //var visabilityKoeff = 0.8;
+
             foreach (var unit in Units)
             {
                 var distanceFromNuceCenter = unit.GetDistanceTo(targetPoint.X, targetPoint.Y);
                 var damageKoeff = (range - distanceFromNuceCenter) / range;
+                var healthKoeff = 1 / unit.GetUnitHealthIndex();
                 var unitForce = unit.AerialDamage + unit.AerialDefence + unit.GroundDamage + unit.GroundDefence;
-                //damage += unitForce * damageKoeff / unit.GetUnitHealthIndex();
+
+                //damage += unitForce * damageKoeff * healthKoeff;
                 damage += unitForce * damageKoeff;
             }
             return damage;

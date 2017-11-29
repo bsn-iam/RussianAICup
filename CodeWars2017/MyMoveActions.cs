@@ -178,6 +178,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 universe.Move.VehicleId = scout.Id;
 
                 MyStrategy.SquadCalculator.SquadList.GetSquadByUnit(scout).SetNukeMarkerCount(30);
+                MyStrategy.SquadCalculator.NukeStrikePosition = targetPoint;
+                MyStrategy.SquadCalculator.NukeStrikeScoutId = scout.Id;
 
                 universe.Print($"Action {this} is started to [{target.X:f2}, {target.Y:f2}].");
                 return true;

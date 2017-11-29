@@ -153,33 +153,33 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return;
 
 
-            if (chosenSquad.IsScout || chosenSquad.Id == (int)Squads.Fighters || chosenSquad.Id == (int)Squads.Helicopters)
-            {
+          //  if (chosenSquad.IsScout || chosenSquad.Id == (int)Squads.Fighters || chosenSquad.Id == (int)Squads.Helicopters)
+          //  {
                 //var requiredPosition = GeneratePositionForScout(squad);
 
                 var requiredSpeed = chosenSquad.IsScout ? Universe.Game.FighterSpeed : chosenSquad.CruisingSpeed;
 
                 var requiredPosition = BonusCalculator.GetBonusMovePoint(chosenSquad);
                 chosenSquad.DoMove(ActionList, requiredPosition, requiredSpeed);
-            }
-            else
-            {
-                if (aggression > 1.2)
-                {
-                    //Atack follow mode
-                    if (chosenSquad.Id == (int)Squads.Tanks || chosenSquad.Id == (int)Squads.Ifvs)
-                        chosenSquad.DoMove(ActionList, chosenSquad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
-                    //if (chosenSquad.Id == (int)Squads.Helicopters)
-                    //    chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int)Squads.Ifvs));
-                    if (chosenSquad.Id == (int)Squads.Arrvs)
-                        chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int)Squads.Fighters));
-                }
-                else
-                {
-                    //going to deff
-                    chosenSquad.DoMove(ActionList, Universe.MapConerLeftUp);
-                }
-            }
+          //  }
+          //  else
+          //  {
+          //      if (aggression > 1.2)
+          //      {
+          //          //Atack follow mode
+          //          if (chosenSquad.Id == (int)Squads.Tanks || chosenSquad.Id == (int)Squads.Ifvs)
+          //              chosenSquad.DoMove(ActionList, chosenSquad.Units.GetPositionOfNearestTarget(Universe.OppUnits));
+          //          //if (chosenSquad.Id == (int)Squads.Helicopters)
+          //          //    chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int)Squads.Ifvs));
+          //          if (chosenSquad.Id == (int)Squads.Arrvs)
+          //              chosenSquad.DoFollow(ActionList, chosenSquad, SquadList.GetSquadById((int)Squads.Fighters));
+          //      }
+          //      else
+          //      {
+          //          //going to deff
+          //          chosenSquad.DoMove(ActionList, Universe.MapConerLeftUp);
+          //      }
+          //  }
 
         }
 
@@ -206,6 +206,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
+        public AbsolutePosition NukeStrikePosition { get; internal set; }
+        public long NukeStrikeScoutId { get; internal set; }
 
         private void GenerateScoutsCommand()
         {
