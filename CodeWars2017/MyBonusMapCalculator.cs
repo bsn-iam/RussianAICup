@@ -268,39 +268,28 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var isAerialSquad = squad.IsAerial;
 
             var myAeroDamage = (squad.AirForce) / squad.Units.Count;
-            var myGroundoDamage = (squad.GroundForce) / squad.Units.Count;
+            var myGroundDamage = (squad.GroundForce) / squad.Units.Count;
             var myAeroDefence = (squad.AirDefence) / squad.Units.Count;
-            var myGroundoDefence = (squad.GroundDefence) / squad.Units.Count;
+            var myGroundDefence = (squad.GroundDefence) / squad.Units.Count;
 
 
             var map = new BonusMap(mapType);
             foreach (var enemyUnit in enemyUnitsForMap)
             {
-                var enemyHealth = enemyUnit.GetUnitHealthIndex();
+                var enemyHealthFactor = enemyUnit.GetUnitHealthIndex();
 
                 var enemyAeroDamage = (enemyUnit.AerialDamage);
                 var enemyGroundDamage = (enemyUnit.GroundDamage);
-                var enemyAeroDefence = (enemyUnit.AerialDefence) * enemyUnit.GetUnitHealthIndex();
-                var enemyGroundDefence = (enemyUnit.GroundDefence) * enemyUnit.GetUnitHealthIndex();
+                var enemyAeroDefence = (enemyUnit.AerialDefence) * enemyHealthFactor;
+                var enemyGroundDefence = (enemyUnit.GroundDefence) * enemyHealthFactor;
 
                 var enemyDamage = isAerialSquad ? enemyAeroDamage : enemyGroundDamage;
                 var enemyDefence = isAerialSquad ? enemyAeroDefence : enemyGroundDefence;
 
-                var myDamage = enemyUnit.IsAerial ? enemyAeroDamage : enemyGroundDamage;
-                var myDefence = enemyUnit.IsAerial ? enemyAeroDefence : enemyGroundDefence;
-
-
-                //var totalWin = myDamage * myDefence - enemyDamage * enemyDefence;
-
-                //var totalWin = (myDamage - enemyDamage) * (myDefence - enemyDefence);
+                var myDamage = enemyUnit.IsAerial ? myAeroDamage : myGroundDamage;
+                var myDefence = enemyUnit.IsAerial ? myAeroDefence : myGroundDefence;
 
                 var totalWin = myDamage / enemyDefence - enemyDamage / myDefence;
-
-                //var enemyWin = isAerialSquad
-                //    ? (enemyUnit.AerialDamage + enemyUnit.AerialDefence) * enemyUnit.GetUnitHealthIndex()
-                //    : (enemyUnit.GroundDamage + enemyUnit.GroundDefence) * enemyUnit.GetUnitHealthIndex();
-                //
-                //var myWin = enemyUnit.IsAerial ? myAeroWin : myGroundoWin;
 
                 var firstRadius = isAerialSquad
                     ? enemyUnit.AerialAttackRange * 1 + squad.Radius
@@ -311,10 +300,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     : enemyUnit.GroundAttackRange * 2.5 + squad.Radius;
                 var secondRadiusMax = 1000;
 
-                //var totalWin = myWin - enemyWin;
                 //var secondRadius = totalWin > 0 ? secondRadiusMax : secondRadiusMin;
 
-                //if (Math.Abs(totalWin) > Double.Epsilon )
+                if (Math.Abs(totalWin) > Double.Epsilon )
                     map.AddUnitCalculation(enemyUnit, firstRadius, totalWin, secondRadiusMin);
             }
             //map.Trim(1);
