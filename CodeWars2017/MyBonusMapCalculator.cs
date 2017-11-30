@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 
@@ -260,12 +262,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var squadCenter = squad.Units.GetUnitsCenter();
             var enemyUnitsForMap = enemyUnits.Where(
                 u => (u.X - squadCenter.X) < affectedRange &&
-                     (u.Y - squadCenter.Y) < affectedRange //&&
-                     //u.Type != VehicleType.Tank
+                     (u.Y - squadCenter.Y) < affectedRange
             ).ToList();
 
 
-            var isAerialSquad = squad.IsAerial;
+            var myIsAerialSquad = squad.IsAerial;
 
             var myAeroDamage = (squad.AirForce) / squad.Units.Count;
             var myGroundDamage = (squad.GroundForce) / squad.Units.Count;
@@ -283,24 +284,29 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 var enemyAeroDefence = (enemyUnit.AerialDefence) * enemyHealthFactor;
                 var enemyGroundDefence = (enemyUnit.GroundDefence) * enemyHealthFactor;
 
-                var enemyDamage = isAerialSquad ? enemyAeroDamage : enemyGroundDamage;
-                var enemyDefence = isAerialSquad ? enemyAeroDefence : enemyGroundDefence;
+                var enemyDamage = myIsAerialSquad ? enemyAeroDamage : enemyGroundDamage;
+                var enemyDefence = myIsAerialSquad ? enemyAeroDefence : enemyGroundDefence;
 
                 var myDamage = enemyUnit.IsAerial ? myAeroDamage : myGroundDamage;
                 var myDefence = enemyUnit.IsAerial ? myAeroDefence : myGroundDefence;
 
                 var totalWin = myDamage / enemyDefence - enemyDamage / myDefence;
 
-                var firstRadius = isAerialSquad
+                if (Double.IsInfinity(totalWin) || Double.IsNaN(totalWin))
+                    throw new Exception("Wrong calculated win number.");
+
+                var firstRadius = myIsAerialSquad
                     ? enemyUnit.AerialAttackRange * 1 + squad.Radius
                     : enemyUnit.GroundAttackRange * 1 + squad.Radius;
 
-                var secondRadiusMin = isAerialSquad
+                var secondRadiusMin = myIsAerialSquad
                     ? enemyUnit.AerialAttackRange * 2.5 + squad.Radius
                     : enemyUnit.GroundAttackRange * 2.5 + squad.Radius;
-                var secondRadiusMax = 1000;
+                var secondRadiusMax = 1200;
 
-                //var secondRadius = totalWin > 0 ? secondRadiusMax : secondRadiusMin;
+                var distanceToUnit = squad.Units.GetCentralUnit().GetDistanceTo(enemyUnit);
+
+                var secondRadius = totalWin > 0 ? secondRadiusMax : secondRadiusMin;
 
                 if (Math.Abs(totalWin) > Double.Epsilon )
                     map.AddUnitCalculation(enemyUnit, firstRadius, totalWin, secondRadiusMin);
@@ -363,7 +369,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static void AddUnitCalculation(this BonusMap map, Vehicle unit, double maxValueDistance, double maxValue, double zeroValueDistance)
         {
             if (maxValueDistance > zeroValueDistance)
-                throw new Exception("Wrong distance limits.");
+            {
+                MyStrategy.Universe.Print("Warning! Zero map distance greater then Max value distance!");
+                //throw new Exception("Wrong distance limits.");
+                zeroValueDistance = maxValueDistance;
+            }
+                
 
             var maxValueDistanceSquared = maxValueDistance* maxValueDistance;
             var zeroValueDistanceSquared = zeroValueDistance * zeroValueDistance;

@@ -165,7 +165,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
 #region VehicleExtensions
 
-        public static double GetUnitHealthIndex(this Vehicle unit) => unit.Durability / unit.MaxDurability;
+        public static double GetUnitHealthIndex(this Vehicle unit)
+        {
+            return (double)unit.Durability / unit.MaxDurability;
+        }
 
         public static Vehicle GetMostDistantAmong(this Vehicle me, List<Vehicle> targets)
         {

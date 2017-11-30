@@ -226,7 +226,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                             if (tile.Value > 0.9999)
                                 FillRect(Color.YellowGreen, tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
 
-                            DrawText($"{tile.Value:f4}", 1, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
+                            DrawText($"{tile.Value:f4}", 3, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
                         }
                 }
 
