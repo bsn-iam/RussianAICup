@@ -137,7 +137,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     maxRayWin = ray.Value;
                     chosenDestination = ray.Key;
                 }
-            //MyStrategy.Universe.Print($"Chosen destination [{chosenDestination.X:f2}, {chosenDestination.Y:f2}], maxWin is {maxRayWin}");
             return chosenDestination.ToAbsolutePosition();
         }
 
@@ -178,7 +177,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                             if (mapX >= 0 && mapY >= 0 && mapX < MapPointsAmount && mapY < MapPointsAmount)
                             {
                                 cellValuesOnRay.Add(map.Table[mapX, mapY]);
-                                //Universe.Print($"{worldPoint} is near line between {possibleDestination} and {squadCenter}.");
                             }
                         }
                     }
@@ -286,6 +284,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 var totalWin = CalculateTotalWin(enemyUnit, myIsAerialSquad, myAeroDamage, myGroundDamage, myAeroDefence, myGroundDefence);
 
+                if (totalWin < squad.FairValue)
+                    squad.FairValue = totalWin;
+
                 var squadRadius = squad.Radius;
                 var firstRadius = myIsAerialSquad
                     ? enemyUnit.AerialAttackRange * 1 + squadRadius
@@ -296,12 +297,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     : enemyUnit.GroundAttackRange * 5 + squadRadius;
                 var secondRadiusFlat = 1200;
 
-                var distanceToUnit = squad.Units.GetCentralUnit().GetDistanceTo(enemyUnit);
                 var secondRadius = mapType == MapType.Additive ? secondRadiusAdditive : secondRadiusFlat;
 
                 if (Math.Abs(totalWin) > Double.Epsilon )
                     map.AddUnitCalculation(enemyUnit, firstRadius, totalWin, secondRadius);
             }
+
+            //To fix value to fear of.
+            map.Table[MapPointsAmount - 1, MapPointsAmount - 1] = squad.FairValue;
             //map.Trim(1);
 
             return map;
@@ -311,14 +314,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             double myAeroDefence, double myGroundDefence)
         {
             var enemyHealthFactor = enemyUnit.GetUnitHealthIndex();
-
-            var enemyAeroDamage = (enemyUnit.AerialDamage);
-            var enemyGroundDamage = (enemyUnit.GroundDamage);
-            var enemyAeroDefence = (enemyUnit.AerialDefence) * enemyHealthFactor;
-            var enemyGroundDefence = (enemyUnit.GroundDefence) * enemyHealthFactor;
-
-            var enemyDamage = myIsAerialSquad ? enemyAeroDamage : enemyGroundDamage;
-            var enemyDefence = myIsAerialSquad ? enemyAeroDefence : enemyGroundDefence;
+            var enemyDamage = myIsAerialSquad ? enemyUnit.AerialDamage : enemyUnit.GroundDamage;
+            var enemyDefence = myIsAerialSquad ? 
+                enemyUnit.AerialDefence * enemyHealthFactor : 
+                enemyUnit.GroundDefence * enemyHealthFactor;
 
             var myDamage = enemyUnit.IsAerial ? myAeroDamage : myGroundDamage;
             var myDefence = enemyUnit.IsAerial ? myAeroDefence : myGroundDefence;
@@ -341,10 +340,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             var map = new BonusMap(mapType);
             foreach (var unit in unitsForMap)
-            {
                 map.AddUnitCalculation(unit, scoutVisionRange, unit.AerialDamage + unit.GroundDamage, 800);
-            }
-
             return map;
         }
 

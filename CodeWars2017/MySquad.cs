@@ -295,7 +295,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 foreach (var unit in Units)
                     if (speed > unit.MaxSpeed)
                     speed = unit.MaxSpeed;
-                return speed * 0.6;
+                return speed * 0.8;
             }
         }
 
@@ -326,6 +326,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return aerialCount > groundCount;
             }
         }
+
+        public double FairValue { get; internal set; } = 0;
 
         internal double GetNukeDamage(AbsolutePosition targetPoint, double range)
         {
