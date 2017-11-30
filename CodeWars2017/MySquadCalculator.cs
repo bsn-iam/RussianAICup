@@ -146,7 +146,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void GenerateSquadCommands()
         {
-            var aggression = Aggression;
+            //var aggression = Aggression;
             var chosenSquad = SquadList.GetIteratorSquadListActive().OrderBy(s => s.LastCallTick).FirstOrDefault();
 
             if (chosenSquad == null)
@@ -183,28 +183,28 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         }
 
-        private double Aggression
-        {
-            get
-            {
-                var persentageToRemove = 2;
-
-                var enemyUnits = Universe.OppUnits.GetClosestUnits(persentageToRemove)
-                    .Where(u => u.Type != VehicleType.Fighter)
-                    .Where(u => u.Type != VehicleType.Helicopter)
-                    .ToList();
-                var myUnits = Universe.MyUnits.GetClosestUnits(persentageToRemove)
-                    .Where(u => u.Type != VehicleType.Fighter)
-                    .Where(u => u.Type != VehicleType.Helicopter)
-                    .ToList();
-
-                var enemy = new Squad(enemyUnits);
-                var me = new Squad(myUnits);
-                var aggression = me.Energy / enemy.Energy;
-                Universe.Print($"Agression {aggression:f2}, my energy {(me.Energy):f2}, enemy energy {(enemy.Energy):f2}");
-                return aggression;
-            }
-        }
+        //private double Aggression
+        //{
+        //    get
+        //    {
+        //        var persentageToRemove = 2;
+        //
+        //        var enemyUnits = Universe.OppUnits.GetClosestUnits(persentageToRemove)
+        //            .Where(u => u.Type != VehicleType.Fighter)
+        //            .Where(u => u.Type != VehicleType.Helicopter)
+        //            .ToList();
+        //        var myUnits = Universe.MyUnits.GetClosestUnits(persentageToRemove)
+        //            .Where(u => u.Type != VehicleType.Fighter)
+        //            .Where(u => u.Type != VehicleType.Helicopter)
+        //            .ToList();
+        //
+        //        var enemy = new Squad(enemyUnits);
+        //        var me = new Squad(myUnits);
+        //        var aggression = me.Energy / enemy.Energy;
+        //        Universe.Print($"Agression {aggression:f2}, my energy {(me.Energy):f2}, enemy energy {(enemy.Energy):f2}");
+        //        return aggression;
+        //    }
+        //}
 
         public AbsolutePosition NukeStrikePosition { get; internal set; }
         public long NukeStrikeScoutId { get; internal set; }

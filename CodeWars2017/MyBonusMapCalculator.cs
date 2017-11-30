@@ -84,13 +84,20 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
             else
             {
-                var commonWinMap = GetCommonWinMap(predictedWorldState.OppUnits, squad, MapType.Additive);
-                squadBonusMapList.Add(commonWinMap.SetWeight(1));
+                var commonWinMapAdditive = GetCommonWinMap(predictedWorldState.OppUnits, squad, MapType.Additive);
+                squadBonusMapList.Add(commonWinMapAdditive.SetWeight(1));
+
+                var commonWinMapFlat = GetCommonWinMap(predictedWorldState.OppUnits, squad, MapType.Flat);
+                squadBonusMapList.Add(commonWinMapFlat.SetWeight(1));
 
                 var collisionMap = squad.IsAerial ? 
                     GetAeroCollisionMap(predictedWorldState.MyUnits, squadIds, squadCenter, MapType.Flat) : 
                     GetGroundCollisionMap(predictedWorldState.MyUnits, squadIds, squadCenter, MapType.Flat);
                 squadBonusMapList.Add(collisionMap.SetWeight(-1));
+
+                //var scoutWinMap = GetScoutBonusMap(predictedWorldState.OppUnits, squadCenter,
+                //    squad.Units.First().VisionRange, MapType.Additive);
+                //squadBonusMapList.Add(scoutWinMap.SetWeight(0.33));
 
             }
 
@@ -277,43 +284,50 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = new BonusMap(mapType);
             foreach (var enemyUnit in enemyUnitsForMap)
             {
-                var enemyHealthFactor = enemyUnit.GetUnitHealthIndex();
+                var totalWin = CalculateTotalWin(enemyUnit, myIsAerialSquad, myAeroDamage, myGroundDamage, myAeroDefence, myGroundDefence);
 
-                var enemyAeroDamage = (enemyUnit.AerialDamage);
-                var enemyGroundDamage = (enemyUnit.GroundDamage);
-                var enemyAeroDefence = (enemyUnit.AerialDefence) * enemyHealthFactor;
-                var enemyGroundDefence = (enemyUnit.GroundDefence) * enemyHealthFactor;
-
-                var enemyDamage = myIsAerialSquad ? enemyAeroDamage : enemyGroundDamage;
-                var enemyDefence = myIsAerialSquad ? enemyAeroDefence : enemyGroundDefence;
-
-                var myDamage = enemyUnit.IsAerial ? myAeroDamage : myGroundDamage;
-                var myDefence = enemyUnit.IsAerial ? myAeroDefence : myGroundDefence;
-
-                var totalWin = myDamage / enemyDefence - enemyDamage / myDefence;
-
-                if (Double.IsInfinity(totalWin) || Double.IsNaN(totalWin))
-                    throw new Exception("Wrong calculated win number.");
-
+                var squadRadius = squad.Radius;
                 var firstRadius = myIsAerialSquad
-                    ? enemyUnit.AerialAttackRange * 1 + squad.Radius
-                    : enemyUnit.GroundAttackRange * 1 + squad.Radius;
+                    ? enemyUnit.AerialAttackRange * 1 + squadRadius
+                    : enemyUnit.GroundAttackRange * 1 + squadRadius;
 
-                var secondRadiusMin = myIsAerialSquad
-                    ? enemyUnit.AerialAttackRange * 2.5 + squad.Radius
-                    : enemyUnit.GroundAttackRange * 2.5 + squad.Radius;
-                var secondRadiusMax = 1200;
+                var secondRadiusAdditive = myIsAerialSquad
+                    ? enemyUnit.AerialAttackRange * 5 + squadRadius
+                    : enemyUnit.GroundAttackRange * 5 + squadRadius;
+                var secondRadiusFlat = 1200;
 
                 var distanceToUnit = squad.Units.GetCentralUnit().GetDistanceTo(enemyUnit);
-
-                var secondRadius = totalWin > 0 ? secondRadiusMax : secondRadiusMin;
+                var secondRadius = mapType == MapType.Additive ? secondRadiusAdditive : secondRadiusFlat;
 
                 if (Math.Abs(totalWin) > Double.Epsilon )
-                    map.AddUnitCalculation(enemyUnit, firstRadius, totalWin, secondRadiusMin);
+                    map.AddUnitCalculation(enemyUnit, firstRadius, totalWin, secondRadius);
             }
             //map.Trim(1);
 
             return map;
+        }
+
+        private static double CalculateTotalWin(Vehicle enemyUnit, bool myIsAerialSquad, double myAeroDamage, double myGroundDamage,
+            double myAeroDefence, double myGroundDefence)
+        {
+            var enemyHealthFactor = enemyUnit.GetUnitHealthIndex();
+
+            var enemyAeroDamage = (enemyUnit.AerialDamage);
+            var enemyGroundDamage = (enemyUnit.GroundDamage);
+            var enemyAeroDefence = (enemyUnit.AerialDefence) * enemyHealthFactor;
+            var enemyGroundDefence = (enemyUnit.GroundDefence) * enemyHealthFactor;
+
+            var enemyDamage = myIsAerialSquad ? enemyAeroDamage : enemyGroundDamage;
+            var enemyDefence = myIsAerialSquad ? enemyAeroDefence : enemyGroundDefence;
+
+            var myDamage = enemyUnit.IsAerial ? myAeroDamage : myGroundDamage;
+            var myDefence = enemyUnit.IsAerial ? myAeroDefence : myGroundDefence;
+
+            var totalWin = myDamage / enemyDefence - enemyDamage / myDefence;
+
+            if (Double.IsInfinity(totalWin) || Double.IsNaN(totalWin))
+                throw new Exception("Wrong calculated win number.");
+            return totalWin;
         }
 
         private BonusMap GetScoutBonusMap(List<Vehicle> enemyUnits, AbsolutePosition squadCenter, double scoutVisionRange, MapType mapType)
@@ -337,7 +351,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private BonusMap GenerateStaticMap()
         {
             var map = new BonusMap().SetWeight(-1.5);
-            const double borderWidth = 25;
+            const double borderWidth = 50;
             var worldWidth = WorldPointsAmount;
             var greenWorldZone = worldWidth - borderWidth;
 

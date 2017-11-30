@@ -34,6 +34,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
         {
             Visualizer.DrawSince = 0;
             Visualizer.RenderPressed = true;
+            Visualizer.Pause = true;
 
         }
 
