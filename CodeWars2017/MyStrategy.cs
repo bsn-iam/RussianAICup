@@ -19,6 +19,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
         public static Predictor Predictor = new Predictor();
         public static BonusMapCalculator BonusCalculator = new BonusMapCalculator();
         public static SortedList<long, AbsolutePosition> MoveOrder = new SortedList<long, AbsolutePosition>();
+        private static Stopwatch MyStrategyTimer = new Stopwatch();
 
 
         public void Move(Player me, World world, Game game, Move move)
@@ -79,6 +80,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
 
         private void RunTick(World world, Game game, Move move, Player player)
         {
+            if (player.IsStrategyCrashed)
+                Universe.Print("Crashed. Finish. Spent time is ");
+            MyStrategyTimer.Start();
             var runTickTimer = new Stopwatch();
             runTickTimer.Reset();
             runTickTimer.Start();
@@ -95,10 +99,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             ActionHandler.RunTick(Universe, SquadCalculator.ActionList);
 
             runTickTimer.Stop();
+            MyStrategyTimer.Stop();
 
             var duration = runTickTimer.ElapsedMilliseconds;
             if (duration > 500)
-                Universe.Print($"---StepTime [{duration:f2}] ms--");
+                Universe.Print($"---StepTime [{duration:f2}] ms, total - [{MyStrategyTimer.ElapsedMilliseconds}/{20 * 20000 + 1000}] ms");
         }
 
         private void UpdateUnitsStatus(World world)
