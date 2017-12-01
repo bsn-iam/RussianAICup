@@ -11,32 +11,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     {
 
 #region UniverseExtensions
-        public static AbsolutePosition GetSquadCenter(this Universe universe, int squad)
+        public static AbsolutePosition GetSquadCenter(this Universe universe, int squadId)
         {
-            var squadUnits = universe.GetSquadUnits(squad);
-            //universe.Print($"Moving {squadUnits.Count} units");
+            var squad = MyStrategy.SquadCalculator.SquadList.GetSquadById(squadId);
 
-            if (squadUnits.Count == 0)
+            if (squad.IsEmpty)
             {
                 universe.Print("Warning! Selection contains 0 units.");
                 return new AbsolutePosition(0, 0);
             }
 
-            return GetUnitsCenter(squadUnits);
-        }
-
-        public static List<Vehicle> GetSquadUnits(this Universe universe, int squad)
-        {
-            var squadUnits = new List<Vehicle>();
-
-            foreach (var unit in universe.MyUnits)
-            {
-                var groups = unit.Groups.ToList();
-                if (groups.Contains(squad))
-                    squadUnits.Add(unit);
-            }
-
-            return squadUnits;
+            return squad.SquadCenter;
         }
 
         public static List<Vehicle> GetTypeMyUnits(this Universe universe, VehicleType type)
@@ -345,7 +330,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             var meetingPoint = squadList.GetMeetingPoint(squadAlfaId, squadDeltaId);
             var squadAlfa = squadList.GetSquadById(squadAlfaId);
-            var distance = meetingPoint.GetDistanceToPoint(squadAlfa.Units.GetUnitsCenter());
+            var distance = meetingPoint.GetDistanceToPoint(squadAlfa.SquadCenter);
             return (int)Math.Round(distance / squadAlfa.CruisingSpeed);
         }
 
@@ -353,10 +338,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static AbsolutePosition GetMeetingPoint(this List<Squad> squadList, int squadAlfaId, int squadDeltaId)
         {
             var squadAlfa = squadList.GetSquadById(squadAlfaId);
-            var squadAlfaPosition = squadAlfa.Units.GetUnitsCenter();
+            var squadAlfaPosition = squadAlfa.SquadCenter;
 
             var squadDelta = squadList.GetSquadById(squadDeltaId);
-            var squadDeltaPosition = squadDelta.Units.GetUnitsCenter();
+            var squadDeltaPosition = squadDelta.SquadCenter;
 
             var dX = squadDeltaPosition.X - squadAlfaPosition.X;
             var dY = squadDeltaPosition.Y - squadAlfaPosition.Y;

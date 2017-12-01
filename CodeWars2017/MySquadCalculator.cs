@@ -177,7 +177,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
              {
                  var dispersionCondition = squad.DispersionRelative > MaxDispersionRelative || squad.Dispersion > 25;
                  if (dispersionCondition && !squad.IsWaitingForScaling)
-                     ActionList.ActionScaleSquadToPosition(squad, 0.1, squad.Units.GetUnitsCenter(), 60);
+                     ActionList.ActionScaleSquadToPosition(squad, 0.1, squad.SquadCenter, 60);
              }
         }
 

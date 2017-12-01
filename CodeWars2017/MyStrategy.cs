@@ -31,7 +31,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             if (Universe.World.TickIndex == 0)
             {
                 Visualizer.Visualizer.CreateForm();
-                Visualizer.Visualizer.DrawSince = 0;
+                Visualizer.Visualizer.DrawSince = 5;
                 Visualizer.Visualizer.LookAt(new Point(Universe.MapConerLeftUp.X, Universe.MapConerLeftUp.Y));
             }
 
@@ -81,7 +81,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
         private void RunTick(World world, Game game, Move move, Player player)
         {
             if (player.IsStrategyCrashed)
-                Universe.Print("Crashed. Finish. Spent time is ");
+                Universe.Print($"Crashed. Finish. Spent time is [{MyStrategyTimer.ElapsedMilliseconds}] ms");
             MyStrategyTimer.Start();
             var runTickTimer = new Stopwatch();
             runTickTimer.Reset();

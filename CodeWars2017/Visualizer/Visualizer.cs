@@ -31,7 +31,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             }
             catch (Exception e)
             {
-                MyStrategy.Universe.Print(e.Message + e.StackTrace);
+                MyStrategy.Universe.Print(e.Message + e.StackTrace + e.InnerException);
             }
 
         }
@@ -255,8 +255,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             foreach (var squad in MyStrategy.SquadCalculator.SquadList.Where(s =>s.IsScout))
             {
-                var scoutCenter = squad.Units.GetUnitsCenter();
-                DrawCircle(Color.DeepSkyBlue, scoutCenter.X, scoutCenter.Y, MyStrategy.Universe.Game.FighterVisionRange);
+                var scoutCenter = squad.SquadCenter;
+                if (scoutCenter != null)
+                    DrawCircle(Color.DeepSkyBlue, scoutCenter.X, scoutCenter.Y, MyStrategy.Universe.Game.FighterVisionRange);
             }
 
             #endregion

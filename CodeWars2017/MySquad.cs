@@ -91,6 +91,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             Id = new Random().Next(0, 100);
             Units = units;
+            CalculateProperties();
             IsCreated = true;
             IsEnabled = false;
             IsAbstract = isAbstract;
@@ -107,6 +108,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squadAlfa.Units.ForEach(u => Units.Add(u));
             squadDelta.Units.ForEach(u => Units.Add(u));
 
+            CalculateProperties();
             IsCreated = true;
             IsEnabled = false;
             IsAbstract = isAbstract;
@@ -222,8 +224,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         internal void DoStop(Queue<IMoveAction> actions)
         {
             actions.ActionSelectSquad(Id);
-            var currentPosition = Units.GetUnitsCenter();
-            actions.ActionMoveSelectionToPosition(currentPosition);
+            actions.ActionMoveSelectionToPosition(SquadCenter);
 
             UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
@@ -231,7 +232,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         internal void DoFollow(Queue<IMoveAction> actions, Squad thisSquad, Squad targetSquad)
         {
             actions.ActionSelectSquad(thisSquad.Id);
-            actions.ActionMoveSelectionToPosition(targetSquad.Units.GetUnitsCenter());
+            actions.ActionMoveSelectionToPosition(targetSquad.SquadCenter);
             UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
@@ -239,12 +240,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             actions.ActionSelectSquad(Id);
 
-            var currentPosition = Units.GetUnitsCenter();
             IsCwDirection = !IsCwDirection;
             var angleDelta = Math.PI / 18;
             var angleChange = IsCwDirection ? angleDelta : -angleDelta;
 
-            actions.ActionRotateSelection(currentPosition, angleChange);
+            actions.ActionRotateSelection(SquadCenter, angleChange);
         }
 
 
@@ -276,6 +276,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     StartGroundEnergy = GroundEnergy;
                     ScalingTimeDelay = 0;
                     IsWaitingForScaling = false;
+
+                    CalculateProperties();
                 }
             }
 
@@ -283,20 +285,29 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 --ScalingTimeDelay;
 
             IsEmpty = !Units.Any();
-            //if (!this.IsEmpty && this.IsEnabled)
-            //universe.Print("Updating " + this);
+            CalculateProperties();
         }
 
-        public double CruisingSpeed
+        private void CalculateProperties()
         {
-            get
-            {
-                var speed = Double.MaxValue;
-                foreach (var unit in Units)
-                    if (speed > unit.MaxSpeed)
-                    speed = unit.MaxSpeed;
-                return speed * 0.8;
-            }
+            CentralUnit = Units.GetCentralUnit();
+
+            if (CentralUnit == null) SquadCenter = new AbsolutePosition();
+            else SquadCenter = new AbsolutePosition(CentralUnit.X, CentralUnit.Y);
+
+            CruisingSpeed = CalculateCruisingSpeed();
+        }
+
+        public Vehicle CentralUnit { get; private set; }
+        public AbsolutePosition SquadCenter { get; private set; }
+
+        public double CalculateCruisingSpeed()
+        {
+             var speed = Double.MaxValue;
+             foreach (var unit in Units)
+                 if (speed > unit.MaxSpeed)
+                 speed = unit.MaxSpeed;
+             return speed * 0.7;
         }
 
         public int NukeMarkerCounter { get; set; }
@@ -306,9 +317,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             get
             {
                 var centerDistanceList = new List<double>();
-                var centerPosition = Units.GetUnitsCenter();
                 foreach (var unit in Units)
-                    centerDistanceList.Add(unit.GetDistanceTo(centerPosition.X, centerPosition.Y));
+                    centerDistanceList.Add(unit.GetDistanceTo(SquadCenter.X, SquadCenter.Y));
                 return centerDistanceList.Average();
             }
         }
@@ -328,6 +338,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
 
         public double FairValue { get; internal set; } = 0;
+        public double CruisingSpeed { get; internal set; }
 
         internal double GetNukeDamage(AbsolutePosition targetPoint, double range)
         {

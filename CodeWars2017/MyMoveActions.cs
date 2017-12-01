@@ -443,7 +443,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public bool Execute(Universe universe)
         {
-            if (universe.GetSquadUnits(squadId).Count == 0)
+            var squad = MyStrategy.SquadCalculator.SquadList.GetSquadById(squadId);
+            if (squad.IsEmpty)
             {
                 universe.Print($"Warning! Squad [{(Squads)squadId}] has no units.");
                 return false;

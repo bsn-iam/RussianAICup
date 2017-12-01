@@ -58,7 +58,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (!squad.Units.Any())
                 return new BonusMap();
 
-            var squadCenter = squad.Units.GetUnitsCenter();
+            var squadCenter = squad.SquadCenter;
             List<long> squadIds = new List<long>();
             foreach (var unit in squad.Units)
                 squadIds.Add(unit.Id);
@@ -264,7 +264,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private BonusMap GetCommonWinMap(List<Vehicle> enemyUnits, Squad squad, MapType mapType)
         {
             const double affectedRange = 1200;
-            var squadCenter = squad.Units.GetUnitsCenter();
+            var squadCenter = squad.SquadCenter;
             var enemyUnitsForMap = enemyUnits.Where(
                 u => (u.X - squadCenter.X) < affectedRange &&
                      (u.Y - squadCenter.Y) < affectedRange

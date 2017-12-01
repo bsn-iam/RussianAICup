@@ -52,6 +52,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             X = x;
             Y = y;
         }
+        public AbsolutePosition()
+        {
+            X = 0;
+            Y = 0;
+        }
 
         public double GetDistanceToPoint(AbsolutePosition position) => GetDistanceToPoint(position.X, position.Y);
         public double GetDistanceToPoint(double x, double y)
