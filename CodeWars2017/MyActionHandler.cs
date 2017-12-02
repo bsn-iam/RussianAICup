@@ -47,7 +47,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 executed = actionList.Dequeue().Execute(universe);
 
-                while (!executed)
+                while (!executed && CanMove(universe.Player, actionList))
                 {
                     executed = actionList.Dequeue().Execute(universe);
                     universe.Print("Executing next.");
@@ -56,10 +56,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return executed;
         }
 
-        public static bool CanMove(Player me, Queue<IMoveAction> actionList)
+        public static bool CanMove(Player me, Queue<IMoveAction> actions)
         {
-            return me.RemainingActionCooldownTicks == 0 && actionList.Any();
-            //return HasActionsFree() && actionList.Any();
+            return me.RemainingActionCooldownTicks == 0 && actions.Any();
+            //return HasActionsFree() && actions.Any();
         }
 
         public static bool HasActionsFree() => lastMinuteTickActions.Count < MyStrategy.MaxActionBalance - 2;
