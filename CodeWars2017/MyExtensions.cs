@@ -367,6 +367,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             new List<Squad>(squadList
                 .Where(s => s.IsEnabled)
                 .Where(s => !s.IsEmpty)
+                .Where(s => s.IsCreated)
                 .Where(s => s.ScalingTimeDelay.Equals(0)));
 
         public static void ActionScaleSquadToPosition(this Queue<IMoveAction> actions, Squad squad, double factor, AbsolutePosition position, int duration)

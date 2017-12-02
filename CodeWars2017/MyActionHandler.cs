@@ -7,28 +7,61 @@ using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 
 namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 {
-    public class ActionHandler
+    public static class ActionHandler
     {
-        public Universe Universe { get; set; }
+        public static Universe Universe { get; set; }
+        //public static int ActionBalance { get; internal set; }
+        //public static int ActionTickIndex { get; internal set; }
+        private static List<int> lastMinuteTickActions = new List<int>();
 
-        internal void RunTick(Universe universe, Queue<IMoveAction> actionList)
+
+        internal static void RunTick(Universe universe, Queue<IMoveAction> commonActionList, Queue<IMoveAction> immediateActionList)
         {
             Universe = universe;
 
+            //run actions
+            var somethingStarted = RunAction(universe, immediateActionList);
+
+            if (!somethingStarted && HasActionsFree())
+                somethingStarted = RunAction(universe, commonActionList);
+
+
+            //update done actions array
+            if (somethingStarted)
+                lastMinuteTickActions.Add(universe.World.TickIndex);
+
+            var cooldown = universe.Player.RemainingActionCooldownTicks;
+
+            if (cooldown > 0)
+                universe.Print("Unexpected action cooldown");
+
+            foreach (var tickAction in new List<int>(lastMinuteTickActions))
+                if (tickAction < universe.World.TickIndex - 60)
+                    lastMinuteTickActions.Remove(tickAction);
+        }
+
+        private static bool RunAction(Universe universe, Queue<IMoveAction> actionList)
+        {
+            var executed = false;
             if (CanMove(universe.Player, actionList))
             {
-                var executed = actionList.Dequeue().Execute(universe);
+                executed = actionList.Dequeue().Execute(universe);
 
-                while (!executed && CanMove(universe.Player, actionList))
+                while (!executed)
                 {
                     executed = actionList.Dequeue().Execute(universe);
                     universe.Print("Executing next.");
                 }
             }
-            //Universe.Move.Action = ActionType.None;
+            return executed;
         }
 
-        public static bool CanMove(Player me, Queue<IMoveAction> actionList) => me.RemainingActionCooldownTicks == 0 && actionList.Any();
+        public static bool CanMove(Player me, Queue<IMoveAction> actionList)
+        {
+            return me.RemainingActionCooldownTicks == 0 && actionList.Any();
+            //return HasActionsFree() && actionList.Any();
+        }
 
+        public static bool HasActionsFree() => lastMinuteTickActions.Count < MyStrategy.MaxActionBalance - 2;
     }
 }

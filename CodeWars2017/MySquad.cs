@@ -221,6 +221,21 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
+        internal void DoScaleJerk(Queue<IMoveAction> actions, List<DeferredAction> deferredActionsList, double factor, AbsolutePosition nukeCenter, int duration, int deferredTickIndex)
+        {
+            actions.ActionScaleSquadToPosition(this, factor, nukeCenter, duration);
+
+            var deferredActions = new Queue<IMoveAction>();
+            deferredActions.ActionScaleSquadToPosition(this, factor, nukeCenter, (int) 1.5 * duration);
+
+            // TODO if queue is log, there is not time for movement, planned combining time is behind.
+            foreach (var action in deferredActions)
+            {
+                //TODO impossible to set exact required time for deferred action
+                deferredActionsList.Add(new DeferredAction(action, deferredTickIndex));
+            }
+        }
+
         internal void DoStop(Queue<IMoveAction> actions)
         {
             actions.ActionSelectSquad(Id);

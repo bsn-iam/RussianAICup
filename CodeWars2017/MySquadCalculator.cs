@@ -11,6 +11,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public List<Squad> SquadList { get; internal set; } =new List<Squad>();
         public List<DeferredAction> DeferredActionList { get; } = new List<DeferredAction>();
         public Queue<IMoveAction> ActionList { get; } = new Queue<IMoveAction>();
+        public Queue<IMoveAction> ImmediateActionList { get; } = new Queue<IMoveAction>();
         public Boolean NukeRequested { get; internal set; } = false;
         public Universe Universe;
         //private const int ActionListLength = 6;
@@ -40,26 +41,58 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (universe.World.TickIndex == 100)
                 ReduceScaleForAll();
 
-            //TODO Extend the sqaud if Nuclear Launch detected, then narrow it.
+            ShowSquadList();
 
-            CheckForNuclearStrike(universe);
+            var oppPlayer = Universe.World.GetOpponentPlayer();
+            if (oppPlayer.NextNuclearStrikeTickIndex > 0)
+            {
+                universe.Print("enemy nuke!");
+            }
+
+            //TODO Extend the sqaud if Nuclear Launch detected, then narrow it.
+            if (ImmediateActionList.Count == 0 && universe.Player.RemainingActionCooldownTicks == 0 )
+                CheckForNukeComing();
+
+            if (ImmediateActionList.Count == 0 && universe.Player.RemainingActionCooldownTicks == 0)
+                CheckForNuclearStrike(universe);
 
             CheckDeferredActionList();
 
-            CheckForScoutsAmount();
+            if (ActionHandler.HasActionsFree() && ActionList.Count == 0 && ImmediateActionList.Count == 0)
+                CheckForScoutsAmount();
 
-            if (ActionList.Count == 0)
+            if (ActionHandler.HasActionsFree() && ActionList.Count == 0 && ImmediateActionList.Count == 0)
+            {
                 universe.Print($"Action list is ready for moves.");
+                GenerateSquadCommands();
+            }
 
-            ShowSquadList();
+        }
 
-            GenerateActions();
+        private void CheckForNukeComing()
+        {
+            var oppPlayer = Universe.World.GetOpponentPlayer();
+            if (oppPlayer.NextNuclearStrikeTickIndex > 0)
+            {
+                var affectedSquadsList = new List<Squad>();
+                var nukeCenter = new AbsolutePosition(oppPlayer.NextNuclearStrikeX, oppPlayer.NextNuclearStrikeY);
+                var nukeRadius = Universe.Game.TacticalNuclearStrikeRadius * 1.5;
+                const int duration = 31;
+                var squaredNukeRadius = nukeRadius * nukeRadius;
+
+                foreach (var squad in SquadList.Where(s => !s.IsWaitingForScaling && s.IsEnabled && !s.IsEmpty))
+                    foreach (var unit in squad.Units)
+                        if (unit.GetSquaredDistanceTo(nukeCenter.X, nukeCenter.Y) < squaredNukeRadius)
+                            affectedSquadsList.Add(squad);
+
+                foreach (var squad in affectedSquadsList.Distinct().ToList())
+                    squad.DoScaleJerk(ImmediateActionList, DeferredActionList,  2, nukeCenter, duration, Universe.World.TickIndex + duration);
+            }
+
         }
 
         private void CheckForScoutsAmount()
         {
-            if (ActionList.Count == 0)
-            {
                 var scoutsAmount = SquadList.Count(
                     s => s.IsScout &&
                          (!s.IsCreated ||
@@ -67,7 +100,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
                 if (scoutsAmount < 2)
                     ActionList.ActionAppointNewScout(SquadList, SquadIdGenerator);
-            }
         }
 
         private void CheckForNuclearStrike(Universe universe)
@@ -102,7 +134,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (scout != null && target != null && maxNuclearResult > 0)
                 {
                     NukeRequested = true;
-                    ActionList.ActionRequestNuclearStrike(SquadList, scout, target);
+                    ImmediateActionList.ActionRequestNuclearStrike(SquadList, scout, target);
                 }
             }
 
@@ -120,15 +152,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 }
             }
             listToRemove.ForEach(a => DeferredActionList.Remove(a));
-        }
-
-        private void GenerateActions()
-        {
-            //CombineSquadsOnStart();
-            if (ActionList.Count == 0)
-            {
-                GenerateSquadCommands();
-            }
         }
 
         private void CombineSquadsOnStart()

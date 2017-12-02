@@ -397,14 +397,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public bool Execute(Universe universe)
         {
-            var selectionCenter = universe.GetSelectionCenter();
-            if (selectionCenter.GetDistanceToPoint(position.X, position.Y) < 5)
-            {
-                universe.Print("Can avoid the movement.");
-                return false;
-            }
-
-
             var selectedUnits = universe.GetSelectedUnits();
             if (!selectedUnits.Any())
             {
@@ -413,6 +405,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
 
             var centralUnit = selectedUnits.GetCentralUnit();
+            var selectionCenter = new AbsolutePosition(centralUnit.X, centralUnit.Y);
+
+            if (selectionCenter.GetDistanceToPoint(position.X, position.Y) < 5)
+            {
+                universe.Print("Can avoid the movement.");
+                return false;
+            }
+
             var moveOrderList = MyStrategy.MoveOrder;
 
             foreach (var unit in selectedUnits)
