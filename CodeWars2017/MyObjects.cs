@@ -42,7 +42,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public AbsolutePosition MapConerLeftUp => new AbsolutePosition(0, 0);
     }
-    
+
     public class AbsolutePosition
     {
         public double X { get; }

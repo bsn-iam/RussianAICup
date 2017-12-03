@@ -226,7 +226,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             actions.ActionScaleSquadToPosition(this, factor, nukeCenter, duration);
 
             var deferredActions = new Queue<IMoveAction>();
-            deferredActions.ActionScaleSquadToPosition(this, factor, nukeCenter, (int) 1.5 * duration);
+            deferredActions.ActionScaleSquadToPosition(this, 0.1, nukeCenter, (int) 1.5 * duration);
 
             // TODO if queue is log, there is not time for movement, planned combining time is behind.
             foreach (var action in deferredActions)

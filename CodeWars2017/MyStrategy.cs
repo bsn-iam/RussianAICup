@@ -16,6 +16,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
         public static Universe Universe { get; set; }
         //public ActionHandler ActionHandler = new ActionHandler();
         public static SquadCalculator SquadCalculator = new SquadCalculator();
+        //public static ActionBalanceCalculator ActionCalculator = new ActionBalanceCalculator();
         public static Predictor Predictor = new Predictor();
         public static BonusMapCalculator BonusCalculator = new BonusMapCalculator();
         public static SortedList<long, AbsolutePosition> MoveOrder = new SortedList<long, AbsolutePosition>();
@@ -93,8 +94,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             UpdateUnitsStatus(world);
             Universe = new Universe(world, game, UnitsMy, UnitsOpp, move, player);
 
-            var controlCentersAmount = 0;
-            MaxActionBalance = game.BaseActionCount + 3 * controlCentersAmount;
+            MaxActionBalance = CalculateActionBalance();
 
             Predictor.RunTick(Universe);
             BonusCalculator.RunTick(Universe);
@@ -107,6 +107,20 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             var duration = runTickTimer.ElapsedMilliseconds;
             if (duration > 500)
                 Universe.Print($"---StepTime [{duration:f2}] ms, total - [{MyStrategyTimer.ElapsedMilliseconds}/{20 * 20000 + 1000}] ms");
+        }
+
+        private static int CalculateActionBalance()
+        {
+            var controlCentersAmount = 0;
+            var reservedForEnemyNuke =
+                Universe.World.GetOpponentPlayer().RemainingNuclearStrikeCooldownTicks < 100 ? 2 : 0;
+
+            var reservedForMyNuke =
+                Universe.World.GetMyPlayer().RemainingNuclearStrikeCooldownTicks < 100 ? 2 : 0;
+
+            var maxActionBalance = Universe.Game.BaseActionCount + 3 * controlCentersAmount - reservedForEnemyNuke -
+                                   reservedForMyNuke;
+            return maxActionBalance;
         }
 
         private void UpdateUnitsStatus(World world)
