@@ -10,7 +10,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     public static class MyExtensions
     {
 
-#region UniverseExtensions
+        #region UniverseExtensions
         public static AbsolutePosition GetSquadCenter(this Universe universe, int squadId)
         {
             var squad = MyStrategy.SquadCalculator.SquadList.GetSquadById(squadId);
@@ -91,7 +91,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         #endregion
 
 
-#region PositionExtensions
+        #region PositionExtensions
 
         public static Vehicle GetCentralUnit(this List<Vehicle> units)
         {
@@ -148,7 +148,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         #endregion
 
 
-#region VehicleExtensions
+        #region VehicleExtensions
 
         public static double GetUnitHealthIndex(this Vehicle unit)
         {
@@ -354,7 +354,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         #endregion
 
 
-#region ActionListExtensions
+        #region ActionListExtensions
 
 
         public static Squad ActionCreateNewSquad(this Queue<IMoveAction> actions, List<Squad> squadList, int newSquadId, VehicleType type) =>
@@ -377,6 +377,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squad.IsWaitingForScaling = true;
             squad.UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
+
         public static void ActionMoveAndCombine(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
             int newSquadId, List<DeferredAction> deferredActionsList, int tickIndex, int duration)
         {

@@ -16,6 +16,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     {
         public const int MapPointsAmount = 64;
         public const int WorldPointsAmount = 1024;
+        public const double FacilitySize = 64; //Universe.Game.FacilityHeight
         public const double SizeWorldMapKoeff = (double)WorldPointsAmount / MapPointsAmount; //8
         public const int MapCellWidth = WorldPointsAmount / MapPointsAmount;
         public double[,] Table = new double[MapPointsAmount, MapPointsAmount];
@@ -95,12 +96,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     GetGroundCollisionMap(predictedWorldState.MyUnits, squadIds, squadCenter, MapType.Flat);
                 squadBonusMapList.Add(collisionMap.SetWeight(-1));
 
-                //if (!squad.IsAerial)
-                //{
-                //    var facilityAttraction = GetFacilityAttractionMap(MapType.Flat);
-                //    squadBonusMapList.Add(facilityAttraction.SetWeight(1));
-                //
-                //}
+                if (!squad.IsAerial)
+                {
+                    var facilityAttractionFlat = GetFacilityAttractionMap(MapType.Flat);
+                    squadBonusMapList.Add(facilityAttractionFlat.SetWeight(0.1));
+                    //var facilityAttractionAdditive = GetFacilityAttractionMap(MapType.Additive);
+                    //squadBonusMapList.Add(facilityAttractionAdditive.SetWeight(1));
+                }
 
             }
 
@@ -218,9 +220,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private BonusMap GetFacilityAttractionMap(MapType maptype)
         {
-            var ficilities = Universe.World.Facilities;
+            var facilities = Universe.World.Facilities;
+            var map = new BonusMap(maptype);
+            foreach (var facility in facilities.Where(f => f.CapturePoints < Universe.Game.MaxFacilityCapturePoints))
+            {
+                map.AddFacilityCalculation(facility, FacilitySize / 2, 1, 1000);
+            }
 
-            return new BonusMap();
+            return map;
         }
 
         private BonusMap GetAeroCollisionMap(List<Vehicle> allUnits, List<long> squadIds, AbsolutePosition squadCenter, MapType mapType)
@@ -386,7 +393,18 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     #region BonusMapExtensions
     public static class BonusMapExtensions
     {
-        public static void AddUnitCalculation(this BonusMap map, Vehicle unit, double maxValueDistance, double maxValue, double zeroValueDistance)
+
+
+        public static void AddFacilityCalculation(this BonusMap map, Facility facility, double maxValueDistance, double maxValue,
+            double zeroValueDistance) =>
+            AddUnitCalculation(map, new AbsolutePosition(facility.Left + BonusMapCalculator.FacilitySize/2, facility.Top + BonusMapCalculator.FacilitySize / 2), 
+                maxValueDistance, maxValue, zeroValueDistance);
+
+        public static void AddUnitCalculation(this BonusMap map, Vehicle unit, double maxValueDistance, double maxValue,
+            double zeroValueDistance) =>
+            AddUnitCalculation(map, new AbsolutePosition(unit.X, unit.Y), maxValueDistance, maxValue, zeroValueDistance);
+
+        public static void AddUnitCalculation(BonusMap map, AbsolutePosition unitPosition, double maxValueDistance, double maxValue, double zeroValueDistance)
         {
             if (maxValueDistance > zeroValueDistance)
             {
@@ -394,7 +412,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 //throw new Exception("Wrong distance limits.");
                 zeroValueDistance = maxValueDistance;
             }
-                
 
             var maxValueDistanceSquared = maxValueDistance* maxValueDistance;
             var zeroValueDistanceSquared = zeroValueDistance * zeroValueDistance;
@@ -402,7 +419,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
             for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
             {
-                var distanceSquared = unit.GetSquaredDistanceTo(i * BonusMapCalculator.SizeWorldMapKoeff, j * BonusMapCalculator.SizeWorldMapKoeff);
+                var distanceSquared = unitPosition.GetSquaredDistanceToPoint(i * BonusMapCalculator.SizeWorldMapKoeff, j * BonusMapCalculator.SizeWorldMapKoeff);
 
                 if (distanceSquared <= maxValueDistanceSquared)
                 {
@@ -462,7 +479,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             map.Trim();
             var tileList = new List<Tile>();
-            int tileWidth = BonusMapCalculator.MapCellWidth; //8
+            double tileWidth = BonusMapCalculator.MapCellWidth; //8
             for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
             for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
             {

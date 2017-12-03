@@ -234,6 +234,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 //TODO impossible to set exact required time for deferred action
                 deferredActionsList.Add(new DeferredAction(action, deferredTickIndex));
             }
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
         internal void DoStop(Queue<IMoveAction> actions)

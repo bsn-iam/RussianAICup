@@ -111,7 +111,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
 
         private static int CalculateActionBalance()
         {
-            var controlCentersAmount = 0;
+            var controlCentersAmount = Universe.World.Facilities.Count(f => f.Type == FacilityType.ControlCenter && f.OwnerPlayerId == Universe.Player.Id);
             var reservedForEnemyNuke =
                 Universe.World.GetOpponentPlayer().RemainingNuclearStrikeCooldownTicks < 100 ? 2 : 0;
 

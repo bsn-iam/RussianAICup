@@ -43,30 +43,55 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             ShowSquadList();
 
-            var oppPlayer = Universe.World.GetOpponentPlayer();
-            if (oppPlayer.NextNuclearStrikeTickIndex > 0)
-            {
-                universe.Print("Enemy nuke!");
-            }
+            if (Universe.World.GetOpponentPlayer().NextNuclearStrikeTickIndex > 0)
+                universe.Print("Nuclear launch detected!");
 
             //TODO Extend the sqaud if Nuclear Launch detected, then narrow it.
-            if (ImmediateActionList.Count == 0 && universe.Player.RemainingActionCooldownTicks == 0 )
+            if (CanMoveImmediateAction(universe))
                 CheckForNukeComing();
 
-            if (ImmediateActionList.Count == 0 && universe.Player.RemainingActionCooldownTicks == 0)
+            if (CanMoveImmediateAction(universe))
                 CheckForNuclearStrike(universe);
 
             //CheckDeferredActionList();
 
-            if (ActionHandler.HasActionsFree() && ActionList.Count == 0 && ImmediateActionList.Count == 0)
+            if (CanMoveCommonAction())
                 CheckForScoutsAmount();
 
-            if (ActionHandler.HasActionsFree() && ActionList.Count == 0 && ImmediateActionList.Count == 0)
+            if (CanMoveCommonAction())
+                CheckForFacilityProduction();
+
+            if (CanMoveCommonAction())
             {
                 universe.Print($"Action list is ready for moves.");
                 GenerateSquadCommands();
             }
 
+        }
+
+        private void CheckForFacilityProduction()
+        {
+            var productionFacilities = Universe.World.Facilities.Where(f => 
+                f.Type == FacilityType.VehicleFactory && 
+                f.VehicleType == null &&
+                f.CapturePoints.Equals(Universe.Game.MaxFacilityCapturePoints)).ToList();
+
+            if (!productionFacilities.Any())
+                return;
+
+            var facility = productionFacilities.FirstOrDefault();
+
+            ActionList.ActionProductionStart(facility, VehicleType.Tank);
+        }
+
+        private bool CanMoveImmediateAction(Universe universe)
+        {
+            return ImmediateActionList.Count == 0 && universe.Player.RemainingActionCooldownTicks == 0;
+        }
+
+        private bool CanMoveCommonAction()
+        {
+            return ActionHandler.HasActionsFree() && ActionList.Count == 0 && ImmediateActionList.Count == 0;
         }
 
         private void CheckForNukeComing()
@@ -89,7 +114,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                             affectedSquadsList.Add(squad);
 
                 var chosenSquad = affectedSquadsList.Distinct().ToList().FirstOrDefault();
-                chosenSquad?.DoScaleJerk(ImmediateActionList, DeferredActionList,  10, nukeCenter, duration, Universe.World.TickIndex + duration);
+                chosenSquad?.DoScaleJerk(ImmediateActionList, DeferredActionList,  3, nukeCenter, duration, Universe.World.TickIndex + duration);
             }
 
         }

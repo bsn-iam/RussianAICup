@@ -113,8 +113,39 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         #endregion
 
+        #region Production
+        public static void ActionProductionStart(this Queue<IMoveAction> moveActions, Facility facility, VehicleType type) =>
+            moveActions.Enqueue(new ActionProductionStart(facility, type));
+
+
+        #endregion
     }
 
+    internal class ActionProductionStart : IMoveAction
+    {
+        private readonly Facility facility;
+        private readonly VehicleType type;
+
+        public ActionProductionStart(Facility facility, VehicleType type)
+        {
+            this.facility = facility;
+            this.type = type;
+        }
+
+        public bool Execute(Universe universe)
+        {
+            if (facility.OwnerPlayerId != universe.Player.Id)
+            {
+                universe.Print($"Facility [{facility.Id}] is reoccupied.");
+                return false;
+            }
+
+            universe.Move.Action = ActionType.SetupVehicleProduction;
+            universe.Move.VehicleType = type;
+            universe.Move.FacilityId = facility.Id;
+            return true;
+        }
+    }
 
     internal class ActionRotateSelection : IMoveAction
     {

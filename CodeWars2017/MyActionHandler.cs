@@ -47,7 +47,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var defferedList = MyStrategy.SquadCalculator.DeferredActionList;
 
             var actionNow = defferedList.FirstOrDefault(a => a.RequestedExecutionTick <= Universe.World.TickIndex);
-            if (Universe.Player.RemainingActionCooldownTicks == 0)
+            if (actionNow != null && Universe.Player.RemainingActionCooldownTicks != 0 )
                 Universe.Print("Warning! No free moves for deferred action.");
 
             if (actionNow != null && Universe.Player.RemainingActionCooldownTicks == 0)

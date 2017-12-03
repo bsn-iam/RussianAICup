@@ -59,11 +59,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
 
         public double GetDistanceToPoint(AbsolutePosition position) => GetDistanceToPoint(position.X, position.Y);
-        public double GetDistanceToPoint(double x, double y)
+        public double GetSquaredDistanceToPoint(AbsolutePosition position) => GetSquaredDistanceToPoint(position.X, position.Y);
+        public double GetDistanceToPoint(double x, double y) => Math.Sqrt(GetSquaredDistanceToPoint(x, y));
+
+        public double GetSquaredDistanceToPoint(double x, double y)
         {
             var xRange = x - X;
             var yRange = y - Y;
-            return Math.Sqrt(xRange * xRange + yRange * yRange);
+            return xRange * xRange + yRange * yRange;
         }
     }
 

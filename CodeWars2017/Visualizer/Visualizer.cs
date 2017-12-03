@@ -262,6 +262,25 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             #endregion
 
+
+            #region Facilities
+
+            foreach (var facility in MyStrategy.Universe.World.Facilities)
+            {
+                Color color = Color.Gray;
+                if (facility.OwnerPlayerId == MyStrategy.Universe.Player.Id)
+                    color = Color.ForestGreen;
+                if (facility.OwnerPlayerId == MyStrategy.Universe.World.GetOpponentPlayer().Id)
+                    color = Color.OrangeRed;
+
+                var size = MyStrategy.Universe.Game.FacilityWidth;
+                FillRect(color, facility.Left + size / 2, facility.Top + size / 2, size / 4, size / 4);
+                DrawText($"{facility.CapturePoints:f0}", 7, Brushes.DarkSlateBlue, facility.Left + size / 2, facility.Top + size / 2);
+            }
+
+
+            #endregion
+
             #region UnitsDraw
 
             foreach (var unit in MyStrategy.Universe.MyUnits.GetEnumeration())
