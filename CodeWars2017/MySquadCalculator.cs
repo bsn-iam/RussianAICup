@@ -65,6 +65,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 CheckForFacilityProduction();
 
             if (CanMoveCommonAction())
+                CheckForDispersedSquads();
+
+            if (CanMoveCommonAction())
             {
                 universe.Print($"Action list is ready for moves.");
                 GenerateSquadCommands();
@@ -72,17 +75,30 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         }
 
+        private void CheckForDispersedSquads()
+        {
+            const int scalePeriod = 500; 
+            var squad = SquadList.FirstOrDefault(s => !s.IsScout && 
+                                                s.DispersionRelative > MaxDispersionRelative && 
+                                                !s.IsWaitingForScaling &&
+                                                Universe.World.TickIndex - s.LastScaleTick > scalePeriod);
+            squad?.DoZoomIn(ActionList);
+
+        }
+
+
+
         private void CheckForNewUnits()
         {
+            const int maxUnitsForNewSquad = 44;
             foreach (var facility in Universe.World.Facilities)
             {
                 var rangeX = new Range(facility.Left, facility.Left + Universe.Game.FacilityWidth);
                 var rangeY = new Range(facility.Top, facility.Top + Universe.Game.FacilityHeight);
 
-
                 var unitsOnFactory = Universe.MyUnits.Where(u => u.X.IsInRange(rangeX) && u.Y.IsInRange(rangeY) && !u.Groups.Any());
 
-                if (unitsOnFactory.Count() >= 44)
+                if (unitsOnFactory.Count() >= maxUnitsForNewSquad)
                 {
                     var factoryRange = new Range2(rangeX, rangeY);
                     ActionList.ActionSelectInRange(factoryRange);
@@ -98,12 +114,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 f.VehicleType == null &&
                 f.CapturePoints.Equals(Universe.Game.MaxFacilityCapturePoints)).ToList();
 
-            if (!productionFacilities.Any())
+            var newUnitsRequired = (double)Universe.MyUnits.Count / Universe.OppUnits.Count < 1.2; 
+
+            if (!productionFacilities.Any() || !newUnitsRequired)
                 return;
 
             var facility = productionFacilities.FirstOrDefault();
 
-            ActionList.ActionProductionStart(facility, VehicleType.Tank);
+            ActionList.ActionProductionStart(facility, VehicleType.Helicopter);
         }
 
         private bool CanMoveImmediateAction(Universe universe)

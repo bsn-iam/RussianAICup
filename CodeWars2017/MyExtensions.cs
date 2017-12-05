@@ -375,7 +375,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             actions.ActionSelectSquad(squad.Id);
             actions.Enqueue(new ActionScaleSelectedSquadToPosition(squad, factor, position, duration));
             squad.IsWaitingForScaling = true;
-            squad.UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
+            //squad.UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
         public static void ActionMoveAndCombine(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,

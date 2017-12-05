@@ -230,7 +230,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = new BonusMap(maptype);
             foreach (var facility in facilities.Where(f => f.CapturePoints < Universe.Game.MaxFacilityCapturePoints))
             {
-                var weight = facility.Type == FacilityType.ControlCenter ? 1.5 : 1;
+                var weight = facility.Type == FacilityType.ControlCenter ? 1.1 : 1;
                 map.AddFacilityCalculation(facility, FacilitySize / 2, weight, 1000);
             }
 
@@ -320,6 +320,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     ? enemyUnit.AerialAttackRange * 5 + squadRadius
                     : enemyUnit.GroundAttackRange * 5 + squadRadius;
                 var secondRadiusFlat = 1200;
+
+                //firstRadius = 0;
 
                 var secondRadius = mapType == MapType.Additive ? secondRadiusAdditive : secondRadiusFlat;
 

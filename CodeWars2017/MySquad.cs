@@ -252,17 +252,26 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
-        internal void DoRotate(Queue<IMoveAction> actions)
+        internal void DoRotateJerk(Queue<IMoveAction> actions)
         {
             actions.ActionSelectSquad(Id);
 
             IsCwDirection = !IsCwDirection;
-            var angleDelta = Math.PI / 18;
+            var angleDelta = Math.PI / 4;
             var angleChange = IsCwDirection ? angleDelta : -angleDelta;
 
             actions.ActionRotateSelection(SquadCenter, angleChange);
         }
 
+        public void DoZoomIn(Queue<IMoveAction> actions)
+        {
+            if (ScaleRotateFlag)
+                actions.ActionScaleSquadToPosition(this, 0.1, SquadCenter, 60);
+            else
+                DoRotateJerk(actions);
+
+            ScaleRotateFlag = !ScaleRotateFlag;
+        }
 
         internal void SetNukeMarkerCount(int ticksLeft)
         {
@@ -323,7 +332,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
              foreach (var unit in Units)
                  if (speed > unit.MaxSpeed)
                  speed = unit.MaxSpeed;
-             return speed * 0.7;
+             return speed;
         }
 
         public int NukeMarkerCounter { get; set; }
@@ -366,6 +375,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public double FairValue { get; internal set; } = 0;
         public double CruisingSpeed { get; internal set; }
+        public int LastScaleTick { get; internal set; }
+        public bool ScaleRotateFlag { get; internal set; }
 
         internal double GetNukeDamage(AbsolutePosition targetPoint, double range)
         {

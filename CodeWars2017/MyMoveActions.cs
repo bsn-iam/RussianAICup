@@ -251,6 +251,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Factor = factor;
             squad.ScalingTimeDelay = duration;
             squad.IsWaitingForScaling = false;
+            squad.LastScaleTick = universe.World.TickIndex;
 
             universe.Print($"Action {this} is started.");
             return true;
