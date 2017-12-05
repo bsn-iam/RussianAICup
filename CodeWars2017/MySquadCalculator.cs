@@ -59,6 +59,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 CheckForScoutsAmount();
 
             if (CanMoveCommonAction())
+                CheckForNewUnits();
+
+            if (CanMoveCommonAction())
                 CheckForFacilityProduction();
 
             if (CanMoveCommonAction())
@@ -67,6 +70,25 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 GenerateSquadCommands();
             }
 
+        }
+
+        private void CheckForNewUnits()
+        {
+            foreach (var facility in Universe.World.Facilities)
+            {
+                var rangeX = new Range(facility.Left, facility.Left + Universe.Game.FacilityWidth);
+                var rangeY = new Range(facility.Top, facility.Top + Universe.Game.FacilityHeight);
+
+
+                var unitsOnFactory = Universe.MyUnits.Where(u => u.X.IsInRange(rangeX) && u.Y.IsInRange(rangeY) && !u.Groups.Any());
+
+                if (unitsOnFactory.Count() >= 44)
+                {
+                    var factoryRange = new Range2(rangeX, rangeY);
+                    ActionList.ActionSelectInRange(factoryRange);
+                    ActionList.ActionCreateNewSquadAlreadySelected(SquadList, SquadIdGenerator);
+                }
+            }
         }
 
         private void CheckForFacilityProduction()
@@ -228,7 +250,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 {
                     Universe.Print($"We can join! Squads Id {squad.Id} and {friendSquad.Id}");
                     ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById(squad.Id),
-                        SquadList.GetSquadById(friendSquad.Id), SquadIdGenerator.New);
+                        SquadList.GetSquadById(friendSquad.Id), SquadIdGenerator);
                 }
             }
         }

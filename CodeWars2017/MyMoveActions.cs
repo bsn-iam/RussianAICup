@@ -24,8 +24,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static void ActionSelectSquad(this Queue<IMoveAction> moveActions, int squadId) =>
             moveActions.Enqueue(new ActionSelectSquad(squadId));
 
-        public static void ActionSelectInRange(this Queue<IMoveAction> moveActions, Range range) =>
-            moveActions.Enqueue(new ActionSelectInRange(range));
+        public static void ActionSelectInRange(this Queue<IMoveAction> moveActions, Range2 range2) =>
+            moveActions.Enqueue(new ActionSelectInRange(range2));
 
         //Assignment
         public static void ActionAssignSelectionToSquad(this Queue<IMoveAction> moveActions, int squadId) =>
@@ -37,11 +37,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static void ActionAddSquadToCurrentSelection(this Queue<IMoveAction> moveActions, int squadId) =>
             moveActions.Enqueue(new ActionAddSquadToCurrentSelection(squadId));
 
-        public static void ActionCombineSquads(this Queue<IMoveAction> moveActions, List<Squad> squadList, Squad squadAlfa, Squad squadDelta, int newSquadId, bool disableOld = true)
+        public static void ActionCombineSquads(this Queue<IMoveAction> moveActions, List<Squad> squadList, Squad squadAlfa, Squad squadDelta, IdGenerator idGenerator, bool disableOld = true)
         {
             moveActions.ActionSelectSquad(squadAlfa.Id);
             moveActions.ActionAddSquadToCurrentSelection(squadDelta.Id);
-            moveActions.ActionCreateNewSquadAlreadySelected(squadList, newSquadId);
+            var newSquad = moveActions.ActionCreateNewSquadAlreadySelected(squadList, idGenerator);
 
             if (disableOld)
             {
@@ -50,13 +50,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
             else
             {
-                squadList.GetSquadById(newSquadId).Disable();
+                newSquad.Disable();
             }
         }
 
         public static void ActionCombineSquads(this Queue<IMoveAction> moveActions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
-            int newSquadId, bool disableOld = true) => 
-            moveActions.ActionCombineSquads(squadList, squadList.GetSquadById(squadAlfaId), squadList.GetSquadById(squadDeltaId), newSquadId, disableOld);
+            IdGenerator squadIdGenerator, bool disableOld = true) => 
+            moveActions.ActionCombineSquads(squadList, squadList.GetSquadById(squadAlfaId), squadList.GetSquadById(squadDeltaId), squadIdGenerator, disableOld);
 
         public static void ActionAppointNewScout(this Queue<IMoveAction> moveActions, List<Squad> squadList,
             IdGenerator squadIdGenerator)
@@ -75,10 +75,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 moveActions.Enqueue(new ActionSelectOneUnit(scout));
                 foreach (var groupId in scout.Groups)
                     moveActions.Enqueue(new ActionDismissSelectionFromSquad(groupId));
-                var scoutSquadId = squadIdGenerator.New;
 
-                moveActions.ActionCreateNewSquadAlreadySelected(squadList, scoutSquadId);
-                squadList.GetSquadById(scoutSquadId).IsScout = true;
+                var newSquad = moveActions.ActionCreateNewSquadAlreadySelected(squadList, squadIdGenerator);
+                newSquad.IsScout = true;
 
             }
         }
@@ -310,9 +309,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
     internal class ActionSelectInRange : IMoveAction
     {
-        private readonly Range range;
+        private readonly Range2 range;
 
-        public ActionSelectInRange(Range range)
+        public ActionSelectInRange(Range2 range)
         {
             this.range = range;
         }
@@ -320,10 +319,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public bool Execute(Universe universe)
         {
             universe.Move.Action = ActionType.ClearAndSelect;
-            universe.Move.Right = range.XRight;
-            universe.Move.Left = range.XLeft;
-            universe.Move.Top = range.YTop;
-            universe.Move.Bottom = range.YBottom;
+            universe.Move.Right = range.XMax;
+            universe.Move.Left = range.XMin;
+            universe.Move.Top = range.YMin;
+            universe.Move.Bottom = range.YMax;
             //universe.Print($"Action {this} is started.");
             return true;
         }

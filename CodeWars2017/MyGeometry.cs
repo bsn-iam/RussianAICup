@@ -251,6 +251,43 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
     }
 
+    public class Range
+    {
+        public Range(double min, double max)
+        {
+            MinLimit = min;
+            MaxLimit = max;
+
+        }
+
+        public double MinLimit { get; }
+        public double MaxLimit { get; }
+    }
+
+    public class Range2
+    {
+        public Range2(Range rangeX, Range rangeY)
+        {
+            XMin = rangeX.MinLimit;
+            XMax = rangeX.MaxLimit;
+            YMin = rangeY.MinLimit;
+            YMax = rangeY.MaxLimit;
+        }
+
+        public Range2(double xMin, double xMax, double yMin, double yMax)
+        {
+            XMin = xMin;
+            XMax = xMax;
+            YMin = yMin;
+            YMax = yMax;
+        }
+
+        public double XMin { get; }
+        public double XMax { get; }
+        public double YMin { get; }
+        public double YMax { get; }
+    }
+
     public class Geom
     {
         /// <summary>
@@ -272,7 +309,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return x < 0 ? -1 : 1;
         }
 
-        private static void _swap<T>(ref T lhs, ref T rhs)
+        public static void Swap<T>(ref T lhs, ref T rhs)
         {
             var temp = lhs;
             lhs = rhs;
@@ -282,9 +319,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private static bool _intersect_1D(double a, double b, double c, double d)
         {
             if (a > b)
-                _swap(ref a, ref b);
+                Swap(ref a, ref b);
             if (c > d)
-                _swap(ref c, ref d);
+                Swap(ref c, ref d);
             return Math.Max(a, c) <= Math.Min(b, d);
         }
 
@@ -372,10 +409,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return Math.Sqrt(x*x + y*y);
         }
 
+
         public static bool Between(double left, double right, double middle)
         {
             if (left > right)
-                _swap(ref left, ref right);
+                Swap(ref left, ref right);
             return left - Double.Epsilon <= middle && middle <= right + Double.Epsilon;
         }
 

@@ -96,6 +96,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     GetGroundCollisionMap(predictedWorldState.MyUnits, squadIds, squadCenter, MapType.Flat);
                 squadBonusMapList.Add(collisionMap.SetWeight(-1));
 
+                if (squad.OfType(VehicleType.Arrv))
+                {
+                    var arrvEnemyCollisionMap = GetGroundCollisionMap(predictedWorldState.MyUnits, squadIds, squadCenter, MapType.Flat);
+                    squadBonusMapList.Add(arrvEnemyCollisionMap.SetWeight(-1));
+                }
+
                 if (!squad.IsAerial)
                 {
                     var facilityAttractionFlat = GetFacilityAttractionMap(MapType.Flat);
@@ -224,7 +230,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = new BonusMap(maptype);
             foreach (var facility in facilities.Where(f => f.CapturePoints < Universe.Game.MaxFacilityCapturePoints))
             {
-                map.AddFacilityCalculation(facility, FacilitySize / 2, 1, 1000);
+                var weight = facility.Type == FacilityType.ControlCenter ? 1.5 : 1;
+                map.AddFacilityCalculation(facility, FacilitySize / 2, weight, 1000);
             }
 
             return map;

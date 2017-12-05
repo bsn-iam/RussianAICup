@@ -61,10 +61,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             IsEnabled = true;
             UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
-        public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id)
+        public Squad(Queue<IMoveAction> actions, List<Squad> squadList, IdGenerator idGenerator)
         {
-            Id = id;
-            actions.ActionAssignSelectionToSquad(id);
+            Id = idGenerator.New;
+            actions.ActionAssignSelectionToSquad(Id);
             squadList.Add(this);
             IsCreated = false;
             IsEnabled = true;
@@ -72,11 +72,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
 
 
-        public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id, Range range)
+        public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id, Range2 range2)
         {
             //range=position.GetRange(radius)
             Id = id;
-            actions.ActionSelectInRange(range);
+            actions.ActionSelectInRange(range2);
             actions.ActionAssignSelectionToSquad(id);
             squadList.Add(this);
             IsCreated = false;
@@ -351,6 +351,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
                 return aerialCount > groundCount;
             }
+        }
+
+        public bool OfType(VehicleType type)
+        {
+            if (!Units.Any())
+                return true;
+            var totalCount = Units.Count;
+            var requestedCount = Units.Count(u => u.Type == type);
+            var othersCount = totalCount - requestedCount;
+
+            return requestedCount > othersCount;
         }
 
         public double FairValue { get; internal set; } = 0;

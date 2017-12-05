@@ -360,8 +360,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static Squad ActionCreateNewSquad(this Queue<IMoveAction> actions, List<Squad> squadList, int newSquadId, VehicleType type) =>
             new Squad(actions, squadList, newSquadId, type);
 
-        public static Squad ActionCreateNewSquadAlreadySelected(this Queue<IMoveAction> actions, List<Squad> squadList, int newSquadId) =>
-            new Squad(actions, squadList, newSquadId);
+        public static Squad ActionCreateNewSquadAlreadySelected(this Queue<IMoveAction> actions, List<Squad> squadList, IdGenerator idGenerator) =>
+            new Squad(actions, squadList, idGenerator);
 
         public static List<Squad> GetIteratorSquadListActive(this List<Squad> squadList) =>
             new List<Squad>(squadList
@@ -379,12 +379,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
 
         public static void ActionMoveAndCombine(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
-            int newSquadId, List<DeferredAction> deferredActionsList, int tickIndex, int duration)
+            IdGenerator squadIdGenerator, List<DeferredAction> deferredActionsList, int tickIndex, int duration)
         {
             actions.ActionMoveToOnePoint(squadList, squadAlfaId, squadDeltaId);
 
             var deferredActions = new Queue<IMoveAction>();
-            deferredActions.ActionCombineSquads(squadList, squadAlfaId, squadDeltaId, newSquadId);
+            deferredActions.ActionCombineSquads(squadList, squadAlfaId, squadDeltaId, squadIdGenerator);
 
             // TODO if queue is log, there is not time for movement, planned combining time is behind.
             foreach (var action in deferredActions)
@@ -407,15 +407,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return Math.Abs(x - y) < Double.Epsilon;
         }
 
-        public static Range GetRange(this AbsolutePosition position, double radius)
+        public static Range2 GetRange(this AbsolutePosition position, double width, double height)
         {
-            var XLeft = position.X - radius;
-            var XRight = position.X - radius;
-            var YTop = position.Y - radius;
-            var YBottom = position.Y - radius;
+            var XMin = position.X - width / 2;
+            var XMAx = position.X - width / 2;
+            var YMin = position.Y - height / 2;
+            var YMax = position.Y - height / 2;
 
-            return new Range(XLeft, XRight, YTop, YBottom);
+            return new Range2(XMin, XMAx, YMin, YMax);
         }
+
+        public static Range2 GetRange(this AbsolutePosition position, double radius)
+        {
+            var XMin = position.X - radius;
+            var XMAx = position.X - radius;
+            var YMin = position.Y - radius;
+            var YMax = position.Y - radius;
+
+            return new Range2(XMin, XMAx, YMin, YMax);
+        }
+
+        public static bool IsInRange(this double value, double minLimit, double maxLimit) =>
+            Geom.Between(minLimit, maxLimit, value);
+        public static bool IsInRange(this double value, Range range) =>
+            Geom.Between(range.MinLimit, range.MaxLimit, value);
+        public static bool IsInRange2(this AbsolutePosition position, Range2 range) =>
+            Geom.Between(range.XMin, range.XMax, position.X) && Geom.Between(range.YMin, range.YMax, position.Y);
 
         public static IEnumerable<Vehicle> GetEnumeration(this List<Vehicle> units)
         {
