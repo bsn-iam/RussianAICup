@@ -191,8 +191,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                             }
                         }
                     }
+                if (cellValuesOnRay.Any())
+                    possibleRays.Add(possibleDestination, cellValuesOnRay.Average());
+                else 
+                    MyStrategy.Universe.Print($"Warning! Possible ray is null for squad [{squad.Id}]. It is near border.");
 
-                possibleRays.Add(possibleDestination, cellValuesOnRay.Average());
             }
             return possibleRays;
         }
