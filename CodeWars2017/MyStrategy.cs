@@ -13,13 +13,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
         public List<Vehicle> UnitsMy = new List<Vehicle>();
         public List<Vehicle> UnitsOpp = new List<Vehicle>();
 
-        public static Universe Universe { get; set; }
-        //public ActionHandler ActionHandler = new ActionHandler();
+        public static Universe Universe { get; internal set; } = new Universe();
         public static SquadCalculator SquadCalculator = new SquadCalculator();
-        //public static ActionBalanceCalculator ActionCalculator = new ActionBalanceCalculator();
         public static Predictor Predictor = new Predictor();
         public static BonusMapCalculator BonusCalculator = new BonusMapCalculator();
-        public static SortedList<long, AbsolutePosition> MoveOrder = new SortedList<long, AbsolutePosition>();
+
         private static Stopwatch MyStrategyTimer = new Stopwatch();
         public static int MaxActionBalance { get; internal set; }
 
@@ -92,7 +90,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             //Universe.Print("Weather CellsAmount " +weather.Length);
 
             UpdateUnitsStatus(world);
-            Universe = new Universe(world, game, UnitsMy, UnitsOpp, move, player);
+            Universe.Update(world, game, UnitsMy, UnitsOpp, move, player);
 
             MaxActionBalance = CalculateActionBalance();
 

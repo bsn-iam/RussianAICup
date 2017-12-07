@@ -226,7 +226,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                             if (tile.Value > 0.9999)
                                 FillRect(Color.YellowGreen, tile.CenterPosition.X, tile.CenterPosition.Y, tile.Size * 1, tile.Size * 1);
 
-                            DrawText($"{tile.Value:f4}", 3, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
+                            if (Math.Abs(tile.RealValue) > Double.Epsilon) DrawText($"{tile.RealValue:f2}", 3, Brushes.Black, tile.CenterPosition.X, tile.CenterPosition.Y);
                         }
                 }
 
@@ -368,9 +368,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
 
             #region MoveOrders
 
-            foreach (var order in MyStrategy.MoveOrder)
+            foreach (var order in SquadCalculator.MoveOrders.OrderList)
             {
                 var unit = MyStrategy.Universe.MyUnits.FirstOrDefault(u => u.Id.Equals(order.Key));
+                //if (unit.GetDistanceTo(order.Value) > 200)
+                //    MyStrategy.Universe.Print("Wrong move order in visual");
                 if (unit!=null)
                     DrawLine(Color.LightGreen, unit.X, unit.Y, order.Value.X, order.Value.Y, 2);
             }
@@ -448,6 +450,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
                 DrawLine(Color.Aquamarine, xMax, yMax, xMin, yMax, 2);
 
             }
+
+            #endregion
+
+            #region WorldSelection
+
+            foreach (var selectedUnit in MyStrategy.Universe.GetSelectedUnits())
+            {
+                DrawCircle(Color.White, selectedUnit.X, selectedUnit.Y, 2.5);
+            }
+            
 
             #endregion
 

@@ -271,6 +271,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 DoRotateJerk(actions);
 
             ScaleRotateFlag = !ScaleRotateFlag;
+            LastScaleTick = MyStrategy.Universe.World.TickIndex;
+            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
         internal void SetNukeMarkerCount(int ticksLeft)

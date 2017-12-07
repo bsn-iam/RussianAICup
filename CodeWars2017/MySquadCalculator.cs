@@ -12,10 +12,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public List<DeferredAction> DeferredActionList { get; } = new List<DeferredAction>();
         public Queue<IMoveAction> ActionList { get; } = new Queue<IMoveAction>();
         public Queue<IMoveAction> ImmediateActionList { get; } = new Queue<IMoveAction>();
+        public static MoveOrder MoveOrders = new MoveOrder();
         public Boolean NukeRequested { get; internal set; } = false;
         public Universe Universe;
         //private const int ActionListLength = 6;
-        private const double MaxDispersionRelative = 0.9;
+        private const double MaxDispersionRelative = 0.85;
         private IdGenerator SquadIdGenerator;
         private BonusMapCalculator BonusCalculator;
 
@@ -77,7 +78,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void CheckForDispersedSquads()
         {
-            const int scalePeriod = 500; 
+            const int scalePeriod = 300; 
             var squad = SquadList.FirstOrDefault(s => !s.IsScout && 
                                                 s.DispersionRelative > MaxDispersionRelative && 
                                                 !s.IsWaitingForScaling &&
@@ -85,8 +86,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             squad?.DoZoomIn(ActionList);
 
         }
-
-
 
         private void CheckForNewUnits()
         {
@@ -101,7 +100,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (unitsOnFactory.Count() >= maxUnitsForNewSquad)
                 {
                     var factoryRange = new Range2(rangeX, rangeY);
+                    Universe.Print($"Creating new squad on factory [{facility.Id}]");
                     ActionList.ActionSelectInRange(factoryRange);
+                    //ActionList.ActionSelectAll();
                     ActionList.ActionCreateNewSquadAlreadySelected(SquadList, SquadIdGenerator);
                 }
             }

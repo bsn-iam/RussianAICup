@@ -86,10 +86,20 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             else
             {
                 var commonWinMapAdditive = GetCommonWinMap(predictedWorldState.OppUnits, squad, MapType.Additive);
-                squadBonusMapList.Add(commonWinMapAdditive.SetWeight(1));
+                foreach (var commonWinMap in commonWinMapAdditive)
+                {
+                    squadBonusMapList.Add(commonWinMap.Key > 0
+                        ? commonWinMap.Value.SetWeight(2)
+                        : commonWinMap.Value.SetWeight(-1));
+                }
 
                 var commonWinMapFlat = GetCommonWinMap(predictedWorldState.OppUnits, squad, MapType.Flat);
-                squadBonusMapList.Add(commonWinMapFlat.SetWeight(1));
+                foreach (var commonWinMap in commonWinMapFlat)
+                {
+                    squadBonusMapList.Add(commonWinMap.Key > 0
+                        ? commonWinMap.Value.SetWeight(2)
+                        : commonWinMap.Value.SetWeight(-1));
+                }
 
                 var collisionMap = squad.IsAerial ? 
                     GetAeroCollisionMap(predictedWorldState.MyUnits, squadIds, squadCenter, MapType.Flat) : 
@@ -105,7 +115,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (!squad.IsAerial)
                 {
                     var facilityAttractionFlat = GetFacilityAttractionMap(MapType.Flat);
-                    squadBonusMapList.Add(facilityAttractionFlat.SetWeight(0.1));
+                    squadBonusMapList.Add(facilityAttractionFlat.SetWeight(0.5));
                     //var facilityAttractionAdditive = GetFacilityAttractionMap(MapType.Additive);
                     //squadBonusMapList.Add(facilityAttractionAdditive.SetWeight(1));
                 }
@@ -113,6 +123,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
 
             squadBonusMapList.Add(StaticMap);
+            foreach (var map in squadBonusMapList)
+            {
+                map.SetRealValues();
+            }
 
             var resultingMap = BonusMapSum(squadBonusMapList);
             squadBonusMapList.Add(resultingMap);
@@ -155,6 +169,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             const int angleStep = 4;
             double radius = squad.CruisingSpeed * squad.ExpectedTicksToNextUpdate * 1.2;
+            radius = Math.Max(radius, 3 * MapCellWidth);
 
             var squadCenterUnit = squad.Units.GetCentralUnit();
             var squadCenter = new Point(squadCenterUnit.X, squadCenterUnit.Y);
@@ -288,7 +303,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return map;
         }
 
-        private BonusMap GetCommonWinMap(List<Vehicle> enemyUnits, Squad squad, MapType mapType)
+        private Dictionary<int, BonusMap> GetCommonWinMap(List<Vehicle> enemyUnits, Squad squad, MapType mapType)
         {
             const double affectedRange = 1200;
             var squadCenter = squad.SquadCenter;
@@ -306,7 +321,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var myGroundDefence = (squad.GroundDefence) / squad.Units.Count;
 
 
-            var map = new BonusMap(mapType);
+            var mapPositive = new BonusMap(mapType);
+            var mapNegative = new BonusMap(mapType);
             foreach (var enemyUnit in enemyUnitsForMap)
             {
                 var totalWin = CalculateTotalWin(enemyUnit, myIsAerialSquad, myAeroDamage, myGroundDamage, myAeroDefence, myGroundDefence);
@@ -328,15 +344,21 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
                 var secondRadius = mapType == MapType.Additive ? secondRadiusAdditive : secondRadiusFlat;
 
-                if (Math.Abs(totalWin) > Double.Epsilon )
-                    map.AddUnitCalculation(enemyUnit, firstRadius, totalWin, secondRadius);
+
+                if (totalWin > 0)
+                    mapPositive.AddUnitCalculation(enemyUnit, firstRadius, totalWin, secondRadius);
+                if (totalWin < 0)
+                    mapNegative.AddUnitCalculation(enemyUnit, firstRadius, totalWin, secondRadius);
             }
+            mapNegative.Reflect();
 
             //To fix value to fear of.
-            map.Table[MapPointsAmount - 1, MapPointsAmount - 1] = squad.FairValue;
+            //map.Table[MapPointsAmount - 1, MapPointsAmount - 1] = squad.FairValue;
             //map.Trim(1);
 
-            return map;
+            var result = new Dictionary<int, BonusMap> {{-1, mapNegative}, {1, mapPositive}};
+
+            return result;
         }
 
         private static double CalculateTotalWin(Vehicle enemyUnit, bool myIsAerialSquad, double myAeroDamage, double myGroundDamage,
@@ -376,7 +398,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private BonusMap GenerateStaticMap()
         {
             var map = new BonusMap().SetWeight(-1.5);
-            const double borderWidth = 50;
+            const double borderWidth = 30;
             var worldWidth = WorldPointsAmount;
             var greenWorldZone = worldWidth - borderWidth;
 
@@ -454,39 +476,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
-        public static BonusMap Trim(this BonusMap map, int power = 1)
-        {
-            double maxValue = Double.MinValue;
-            double minValue = Double.MaxValue;
-
-            //find max value of the map
-            for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
-            for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
-            {
-                if (map.Table[i, j] > maxValue)
-                    maxValue = map.Table[i, j];
-                if (map.Table[i, j] < minValue)
-                    minValue = map.Table[i, j];
-                }
-
-            if (Math.Abs(minValue - maxValue) < Double.Epsilon)
-            {
-                MyStrategy.Universe.Print("Map is empty");
-                return map;
-            }
-
-            //scale map to range [0, 1]
-            for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
-            for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
-            {
-                    map.Table[i, j] = Math.Pow((map.Table[i, j] - minValue) / (maxValue - minValue), power);
-
-                    if (map.Table[i, j] > 1 || map.Table[i, j] < 0 || Double.IsNaN(map.Table[i, j]))
-                        throw new Exception("Wrong map trim.");
-            }
-            return map;
-        }
-
         public static IEnumerable<Tile> GetTileList(this BonusMap map)
         {
             map.Trim();
@@ -497,7 +486,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 var tileCenter = new Point(i * BonusMapCalculator.SizeWorldMapKoeff + tileWidth / 2,
                     j * BonusMapCalculator.SizeWorldMapKoeff + tileWidth / 2);
-                tileList.Add(new Tile(tileCenter, tileWidth, map.Table[i, j]));
+                tileList.Add(new Tile(tileCenter, tileWidth, map.Table[i, j], map.RealTable[i, j]));
                 if (map.Table[i, j] > 1 || map.Table[i, j] < 0)
                     throw new Exception("Wrong tile trim.");
             }

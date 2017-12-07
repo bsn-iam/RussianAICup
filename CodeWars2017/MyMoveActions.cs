@@ -319,12 +319,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public bool Execute(Universe universe)
         {
+            if (universe.World.TickIndex !=0)
+                universe.Crash("Executing without permission!");
             universe.Move.Action = ActionType.ClearAndSelect;
             universe.Move.Right = range.XMax;
             universe.Move.Left = range.XMin;
             universe.Move.Top = range.YMin;
             universe.Move.Bottom = range.YMax;
-            //universe.Print($"Action {this} is started.");
+
+            if (universe.Move.Left >= universe.Move.Right && universe.Move.Top >= universe.Move.Bottom)
+                universe.Crash("Wrong Range in move!");
+            universe.Print($"Action {this} is started. Selecting units in [{range}]");
             return true;
         }
     }
@@ -372,9 +377,15 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         }
         public bool Execute(Universe universe)
         {
+            var selectedUnits = universe.GetSelectedUnits();
+            if (!selectedUnits.Any())
+            {
+                universe.Print("Can avoid the movement. Selected unit is absent or dead.");
+                return false;
+            }
             universe.Move.Action = ActionType.Assign;
             universe.Move.Group = squadId;
-            //universe.Print($"Action {this} is started.");
+            universe.Print($"Action {this} is started. [{selectedUnits.Count}] units were selected.");
             return true;
         }
     }
@@ -413,14 +424,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
     public class ActionMoveSelectionToPosition : IMoveAction
     {
         private readonly AbsolutePosition position;
-        private readonly double speed = 5;
+        private readonly double speed = 1;
 
-        public ActionMoveSelectionToPosition(AbsolutePosition position)
-        {
-            this.position = position;
-        }
-
-        public ActionMoveSelectionToPosition(AbsolutePosition position, double speed) : this(position)
+        public ActionMoveSelectionToPosition(AbsolutePosition position, double speed = 1)
         {
             this.position = position;
             this.speed = speed;
@@ -444,15 +450,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 return false;
             }
 
-            var moveOrderList = MyStrategy.MoveOrder;
+            //var moveOrderList = MyStrategy.MoveOrder;
 
-            foreach (var unit in selectedUnits)
-                foreach (var moveOrder in new SortedList<long, AbsolutePosition>(moveOrderList))
-                {
-                    if (moveOrder.Key == unit.Id)
-                        moveOrderList.Remove(moveOrder.Key);
-                }
-            moveOrderList.Add(centralUnit.Id, position);
+            SquadCalculator.MoveOrders.Update(selectedUnits, centralUnit, position);
+            //if (centralUnit.GetDistanceTo(position) > 200)
+            //    universe.Print("Wrong move order");
 
             universe.Move.Action = ActionType.Move;
             universe.Move.X = position.X - selectionCenter.X;
@@ -461,6 +463,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             //universe.Print($"Action {this} is started.");
             return true;
         }
+
+
     }
 
     public class ActionSelectSquad : IMoveAction

@@ -286,6 +286,11 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public double XMax { get; }
         public double YMin { get; }
         public double YMax { get; }
+
+        public override string ToString()
+        {
+            return $"X[{XMin:f2}-{XMax:f2}], Y[{YMin:f2}-{YMax:f2}].";
+        }
     }
 
     public class Geom

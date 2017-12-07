@@ -22,8 +22,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model {
             return Math.Sqrt(xRange * xRange + yRange * yRange);
         }
 
-        public double GetDistanceTo(Unit unit) {
+        public double GetDistanceTo(Unit unit)
+        {
             return GetDistanceTo(unit.x, unit.y);
+        }
+        public double GetDistanceTo(AbsolutePosition position)
+        {
+            return GetDistanceTo(position.X, position.Y);
         }
 
         public double GetSquaredDistanceTo(double x, double y) {

@@ -87,6 +87,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             Console.WriteLine(universe.World.TickIndex + ". " + message.Replace("Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.", ""));
 #endif
         }
+        public static void Crash(this Universe universe, string message)
+        {
+#if DEBUG
+            throw new Exception(message);
+#endif
+        }
 
         #endregion
 

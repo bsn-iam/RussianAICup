@@ -20,14 +20,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
     public class Universe
     {
-        public Move Move { get; set; }
-        public World World { get; }
-        public Game Game { get; }
-        public List<Vehicle> MyUnits { get; }
-        public List<Vehicle> OppUnits { get; }
-        public Player Player { get; }
+        public Move Move { get; internal set; }
+        public World World { get; internal set; }
+        public Game Game { get; internal set; }
+        public List<Vehicle> MyUnits { get; internal set; }
+        public List<Vehicle> OppUnits { get; internal set; }
+        public Player Player { get; internal set; }
 
-        public Universe(World world, Game game, List<Vehicle> myUnits, List<Vehicle> oppUnits, Move move, Player player)
+        public void Update(World world, Game game, List<Vehicle> myUnits, List<Vehicle> oppUnits, Move move, Player player)
         {
             World = world;
             Game = game;
@@ -118,21 +118,27 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
     public class Tile
     {
-        public Tile(Point centerPosition, double size, double value)
+        public Tile(Point centerPosition, double size, double value, double realValue = 0)
         {
             CenterPosition = centerPosition;
             Value = value;
             Size = size;
+            RealValue = realValue;
         }
 
         public Point CenterPosition { get; set; }
         public double Value { get; set; }
+        public double RealValue { get; set; }
         public double Size { get; set; }
     }
 
     public class BonusMap
     {
         public double[,] Table = new double[BonusMapCalculator.MapPointsAmount, BonusMapCalculator.MapPointsAmount];
+
+        public double[,] RealTable { get; internal set; } =
+            new double[BonusMapCalculator.MapPointsAmount, BonusMapCalculator.MapPointsAmount];
+
         public MapType MapType { get; }
         public bool IsPositive { get;  set; }
         public double Weight { get;  set; }
@@ -146,5 +152,68 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
         }
 
+        public void SetRealValues()
+        {
+            RealTable = Table;
+        }
+
+        public void Reflect()
+        {
+            for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
+            for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
+            {
+                Table[i, j] = - Table[i, j];
+            }
+        }
+
+        public BonusMap Trim(int power = 1)
+        {
+            double maxValue = Double.MinValue;
+            double minValue = Double.MaxValue;
+
+            //find max value of the map
+            for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
+            for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
+            {
+                if (Table[i, j] > maxValue)
+                    maxValue = Table[i, j];
+                if (Table[i, j] < minValue)
+                    minValue = Table[i, j];
+            }
+
+            if (Math.Abs(minValue - maxValue) < Double.Epsilon)
+            {
+                MyStrategy.Universe.Print("Map is empty");
+                return this;
+            }
+
+            //scale map to range [0, 1]
+            for (int i = 0; i < BonusMapCalculator.MapPointsAmount; i++)
+            for (int j = 0; j < BonusMapCalculator.MapPointsAmount; j++)
+            {
+                Table[i, j] = Math.Pow((Table[i, j] - minValue) / (maxValue - minValue), power);
+
+                if (Table[i, j] > 1 || Table[i, j] < 0 || Double.IsNaN(Table[i, j]))
+                    throw new Exception("Wrong map trim.");
+            }
+            return this;
+        }
+
+    }
+
+    public class MoveOrder
+    {
+        public SortedList<long, AbsolutePosition> OrderList = new SortedList<long, AbsolutePosition>();
+
+        public void Update(List<Vehicle> selectedUnits, Vehicle centralUnit, AbsolutePosition position)
+        {
+            foreach (var unit in selectedUnits)
+            foreach (var moveOrder in new SortedList<long, AbsolutePosition>(OrderList))
+            {
+                if (moveOrder.Key == unit.Id)
+                    OrderList.Remove(moveOrder.Key);
+            }
+            OrderList.Add(centralUnit.Id, position);
+        }
     }
 }
