@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Model;
 
 namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
@@ -137,9 +131,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private BonusMap BonusMapSum(List<BonusMap> squadBonusMapList)
         {
-            var sumMap= new BonusMap();
+            var sumMap = new BonusMap();
+            var isInSurvivalMode = IsInSurvivalMode();
             foreach (var map in squadBonusMapList)
             {
+                if (isInSurvivalMode && map.Weight > 0)
+                    continue;
                 map.Trim();
                 for (int i = 0; i < MapPointsAmount; i++)
                 for (int j = 0; j < MapPointsAmount; j++)
@@ -149,6 +146,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             CheckTileGeneration(squadBonusMapList);
 
             return sumMap.Trim();
+        }
+
+        private bool IsInSurvivalMode()
+        {
+            var amountOfMyWarriors = Universe.MyUnits.Count(u => u.Type != VehicleType.Arrv);
+            var amountOfOppWarriors = Universe.OppUnits.Count(u => u.Type != VehicleType.Arrv);
+
+            if (amountOfMyWarriors < amountOfOppWarriors *1.5 && amountOfMyWarriors < 5000)
+                return true;
+
+            return false;
         }
 
 
