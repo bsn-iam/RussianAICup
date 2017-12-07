@@ -83,7 +83,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 foreach (var commonWinMap in commonWinMapAdditive)
                 {
                     squadBonusMapList.Add(commonWinMap.Key > 0
-                        ? commonWinMap.Value.SetWeight(2)
+                        ? commonWinMap.Value.SetWeight(1.6)
                         : commonWinMap.Value.SetWeight(-1));
                 }
 
@@ -91,7 +91,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 foreach (var commonWinMap in commonWinMapFlat)
                 {
                     squadBonusMapList.Add(commonWinMap.Key > 0
-                        ? commonWinMap.Value.SetWeight(2)
+                        ? commonWinMap.Value.SetWeight(1.6)
                         : commonWinMap.Value.SetWeight(-1));
                 }
 
@@ -109,7 +109,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (!squad.IsAerial)
                 {
                     var facilityAttractionFlat = GetFacilityAttractionMap(MapType.Flat);
-                    squadBonusMapList.Add(facilityAttractionFlat.SetWeight(0.5));
+                    squadBonusMapList.Add(facilityAttractionFlat.SetWeight(0.6));
                     //var facilityAttractionAdditive = GetFacilityAttractionMap(MapType.Additive);
                     //squadBonusMapList.Add(facilityAttractionAdditive.SetWeight(1));
                 }
@@ -153,7 +153,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var amountOfMyWarriors = Universe.MyUnits.Count(u => u.Type != VehicleType.Arrv);
             var amountOfOppWarriors = Universe.OppUnits.Count(u => u.Type != VehicleType.Arrv);
 
-            if (amountOfMyWarriors < amountOfOppWarriors *1.5 && amountOfMyWarriors < 5000)
+            if (amountOfMyWarriors < amountOfOppWarriors && amountOfMyWarriors < 10)
                 return true;
 
             return false;
@@ -256,7 +256,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = new BonusMap(maptype);
             foreach (var facility in facilities.Where(f => f.CapturePoints < Universe.Game.MaxFacilityCapturePoints))
             {
-                var weight = facility.Type == FacilityType.ControlCenter ? 1.1 : 1;
+                var weight = facility.Type == FacilityType.ControlCenter ? 1.05 : 1;
                 map.AddFacilityCalculation(facility, FacilitySize / 2, weight, 1000);
             }
 
