@@ -97,7 +97,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
                 var unitsOnFactory = Universe.MyUnits.Where(u => u.X.IsInRange(rangeX) && u.Y.IsInRange(rangeY) && !u.Groups.Any());
 
-                if (unitsOnFactory.Count() >= maxUnitsForNewSquad)
+                if (unitsOnFactory.Count() >= maxUnitsForNewSquad && SquadIdGenerator.HasCapacity)
                 {
                     var factoryRange = new Range2(rangeX, rangeY);
                     Universe.Print($"Creating new squad on factory [{facility.Id}]");
@@ -265,7 +265,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             foreach (var friendSquad in new List<Squad>(SquadList.Where(s => !s.Id.Equals(squad.Id))))
             {
                 var squadJoin = new Squad(squad, friendSquad);
-                if (squadJoin.Dispersion < squad.Dispersion)
+                if (squadJoin.Dispersion < squad.Dispersion && SquadIdGenerator.HasCapacity)
                 {
                     Universe.Print($"We can join! Squads Id {squad.Id} and {friendSquad.Id}");
                     ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById(squad.Id),

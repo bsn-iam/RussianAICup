@@ -64,12 +64,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (squadIdGenerator.HasCapacity)
             {
                 const VehicleType type = VehicleType.Fighter;
-                var scoutOwner = squadList.FirstOrDefault(s => s.Units.Any(u => u.Type.Equals(type)));
+                var scoutOwner = squadList.FirstOrDefault(sq => sq.Units.Any(u => u.Type.Equals(type)) && !sq.IsScout);
 
                 if (scoutOwner == null)
                     return;
 
                 var candidateList = scoutOwner.Units.Where(u => u.Type == type).ToList();
+
                 var scout = candidateList.GetMostDistantUnit();
 
                 moveActions.Enqueue(new ActionSelectOneUnit(scout));

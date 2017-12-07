@@ -384,22 +384,22 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             //squad.UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
-        public static void ActionMoveAndCombine(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
-            IdGenerator squadIdGenerator, List<DeferredAction> deferredActionsList, int tickIndex, int duration)
-        {
-            actions.ActionMoveToOnePoint(squadList, squadAlfaId, squadDeltaId);
-
-            var deferredActions = new Queue<IMoveAction>();
-            deferredActions.ActionCombineSquads(squadList, squadAlfaId, squadDeltaId, squadIdGenerator);
-
-            // TODO if queue is log, there is not time for movement, planned combining time is behind.
-            foreach (var action in deferredActions)
-            {
-                //TODO impossible to set exact required time for deferred action
-                //deferredActionsList.Add(new DeferredAction(action, tickIndex + squadList.GetPeriodPerMeeting(squadId, squadDeltaId)));
-                deferredActionsList.Add(new DeferredAction(action, tickIndex + duration));
-            }
-        }
+        //public static void ActionMoveAndCombine(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,
+        //    IdGenerator squadIdGenerator, List<DeferredAction> deferredActionsList, int tickIndex, int duration)
+        //{
+        //    actions.ActionMoveToOnePoint(squadList, squadAlfaId, squadDeltaId);
+        //
+        //    var deferredActions = new Queue<IMoveAction>();
+        //    deferredActions.ActionCombineSquads(squadList, squadAlfaId, squadDeltaId, squadIdGenerator);
+        //
+        //    // TODO if queue is log, there is not time for movement, planned combining time is behind.
+        //    foreach (var action in deferredActions)
+        //    {
+        //        //TODO impossible to set exact required time for deferred action
+        //        //deferredActionsList.Add(new DeferredAction(action, tickIndex + squadList.GetPeriodPerMeeting(squadId, squadDeltaId)));
+        //        deferredActionsList.Add(new DeferredAction(action, tickIndex + duration));
+        //    }
+        //}
 
         #endregion
 

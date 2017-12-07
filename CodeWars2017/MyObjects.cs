@@ -105,7 +105,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                         newId = number + 1;
 
                 if (newId > maxNumber)
-                    throw new Exception($"Group ID id outside the available range [{0}, {maxNumber}]");
+                    MyStrategy.Universe.Crash($"Group ID id outside the available range: [{0}, {maxNumber}]");
 
                 squadNumbers.Add(newId);
                 return newId;
