@@ -146,34 +146,38 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             }
 
             ReplaceUnitWithUpdate(world, UnitsMy);
-            foreach (var unit in UnitsMy)
-            {
-                if (unit.X < 0.1) throw new Exception("0 coordinate! Dead warrior!");
-            }
+            //foreach (var unit in UnitsMy)
+            //{
+            //    if (unit.X < 0.1) throw new Exception("0 coordinate! Dead warrior!");
+            //}
             ReplaceUnitWithUpdate(world, UnitsOpp);
-            foreach (var unit in UnitsOpp)
-            {
-                if (unit.X < 0.1) throw new Exception("0 coordinate! Dead enemy in the list.");
-            }
+            //foreach (var unit in UnitsOpp)
+            //{
+            //    if (unit.X < 0.1) throw new Exception("0 coordinate! Dead enemy in the list.");
+            //}
         }
 
         private void ReplaceUnitWithUpdate(World world, List<Vehicle> units)
         {
-            foreach (var unit in units.ToList())
+            foreach (var update in world.VehicleUpdates)
             {
-                var update = world.VehicleUpdates.FirstOrDefault(u => u.Id.Equals(unit.Id));
+                var unit = units.FirstOrDefault(u => u.Id.Equals(update.Id));
 
-                if (update == null)
+                if (unit == null)
                     continue;
-
-                var newUnit = new Vehicle(unit, update);
-                units.Remove(unit);
-                if (update.Durability != 0) //Note: Dead or not visible units are removed from the list! 
-                    units.Add(newUnit);
-
-                // TODO if (UnitAliveButNotVisible) units.Add(newUnit);
-                // TODO For dead units position is 0, for for the hidden ones?
+                ReplaceWithUpdate(units, unit, update);
             }
+        }
+
+        private static void ReplaceWithUpdate(List<Vehicle> units, Vehicle unit, VehicleUpdate update)
+        {
+            var newUnit = new Vehicle(unit, update);
+            units.Remove(unit);
+            if (update.Durability != 0) //Note: Dead or not visible units are removed from the list! 
+                units.Add(newUnit);
+
+            // TODO if (UnitAliveButNotVisible) units.Add(newUnit);
+            // TODO For dead units position is 0, for for the hidden ones?
         }
     }
 

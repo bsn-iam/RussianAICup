@@ -21,8 +21,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public bool IsAbstract { get; }
 
         public double StartDispersion { get; internal set; } = Double.MaxValue;
-        public double StartGroundEnergy { get; internal set; } = 0;
-        public double StartAirEnergy { get; internal set; } = 0;
+        //public double StartGroundEnergy { get; internal set; } = 0;
+        //public double StartAirEnergy { get; internal set; } = 0;
 
         public int ScalingTimeDelay { get; internal set; }
         public bool IsWaitingForScaling { get; internal set; }
@@ -181,13 +181,13 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
-        public double AirEnergy => (AirForce + AirDefence) / Dispersion;
-        public double AirEnergyRelative => AirEnergy / StartAirEnergy;
-        public double GroundEnergyRelative => GroundEnergy / StartGroundEnergy;
+        //public double AirEnergy => (AirForce + AirDefence) / Dispersion;
+        //public double AirEnergyRelative => AirEnergy / StartAirEnergy;
+        //public double GroundEnergyRelative => GroundEnergy / StartGroundEnergy;
         public double DispersionRelative => Dispersion / StartDispersion;
-        public double GroundEnergy => (GroundForce + GroundDefence) / Dispersion;
+        //public double GroundEnergy => (GroundForce + GroundDefence) / Dispersion;
 
-        public double Energy => GroundEnergy + AirEnergy;
+        //public double Energy => GroundEnergy + AirEnergy;
 
         #endregion
 
@@ -299,8 +299,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (IsCreated)
                 {
                     StartDispersion = Dispersion;
-                    StartAirEnergy = AirEnergy;
-                    StartGroundEnergy = GroundEnergy;
+                    //StartAirEnergy = AirEnergy;
+                    //StartGroundEnergy = GroundEnergy;
                     ScalingTimeDelay = 0;
                     IsWaitingForScaling = false;
 
@@ -405,10 +405,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public override string ToString()
         {
-            return $"Squad [{(Squads)Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], " +
-                   $"Dispersion [{Dispersion:f2}, {DispersionRelative:f2}], " +
-                   $"AirEnergy [{AirEnergy:f2}, {AirEnergyRelative:f2}], " +
-                   $"GroundEnergy [{GroundEnergy:f2}, {GroundEnergyRelative:f2}]";
+            return $"Squad [{(Squads) Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], " +
+                   $"Dispersion [{Dispersion:f2}, {DispersionRelative:f2}], ";
         }
 
     }

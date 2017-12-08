@@ -83,10 +83,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (stateOld.Value == null)
                 return unitSpeed;
 
-            var allOldUnits = stateOld.Value.OppUnits.GetCombinedList(stateOld.Value.MyUnits);
+            //var allOldUnits = stateOld.Value.OppUnits.GetCombinedList(stateOld.Value.MyUnits);
 
-            var unitOld = allOldUnits.FirstOrDefault(u => u.Id.Equals(unit.Id));
-
+            var unitOld = stateOld.Value.MyUnits.FirstOrDefault(u => u.Id.Equals(unit.Id)) ?? 
+                            stateOld.Value.OppUnits.FirstOrDefault(u => u.Id.Equals(unit.Id));
             if (unitOld == null)
                 return unitSpeed;
 

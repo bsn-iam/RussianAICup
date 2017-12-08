@@ -107,16 +107,16 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (units.Count == 1)
                 return units[0];
 
-            var dispersionPerUnit = units.GetUnitsDispersionList();
+            var dispersionPerUnit = units.GetUnitsSquaredDispersionList();
 
             //get the ID of less distant.
-            var minDistance = Double.MaxValue;
+            var minSquaredDistance = Double.MaxValue;
             long centerUnitId = 0;
             foreach (var pair in dispersionPerUnit)
             {
-                if (pair.Value > 0.01 && pair.Value < minDistance)
+                if (pair.Value > 0.01 && pair.Value < minSquaredDistance)
                 {
-                    minDistance = pair.Value;
+                    minSquaredDistance = pair.Value;
                     centerUnitId = pair.Key;
                 }
             }
@@ -217,7 +217,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public static bool DoISeeThisPoint(this Vehicle myUnit, AbsolutePosition point)
         {
-            var squaredRange = myUnit.VisionRange * myUnit.VisionRange * 0.6;
+            var squaredRange = myUnit.SquaredVisionRange * 0.6;
             return myUnit.GetSquaredDistanceTo(point.X, point.Y) < squaredRange;
         }
         #endregion
@@ -294,7 +294,28 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static Squad GetSquadById(this List<Squad> squadList, int squadId) =>
             squadList.FirstOrDefault(s => s.Id.Equals(squadId));
 
+        public static Dictionary<long, double> GetUnitsSquaredDispersionList(this List<Vehicle> units)
+        {
+            Dictionary<long, double> dispersionPerUnit = new Dictionary<long, double>();
+            if (units.Count == 1)
+            {
+                dispersionPerUnit.Add(units[0].Id, 1);
+                return dispersionPerUnit;
+            }
 
+            //get sum of distance to friends
+            foreach (var u1 in units)
+            {
+                double u1Distance = 0;
+                foreach (var u2 in units)
+                    u1Distance += u1.GetSquaredDistanceTo(u2);
+                if (!dispersionPerUnit.ContainsKey(u1.Id))
+                    dispersionPerUnit.Add(u1.Id, u1Distance / units.Count);
+            }
+            //greater value - more distant unit
+
+            return dispersionPerUnit;
+        }
         public static Dictionary<long, double> GetUnitsDispersionList(this List<Vehicle> units)
         {
             Dictionary<long, double> dispersionPerUnit = new Dictionary<long, double>();
