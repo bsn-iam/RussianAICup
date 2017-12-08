@@ -109,7 +109,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (!squad.IsAerial)
                 {
                     var facilityAttractionFlat = GetFacilityAttractionMap(MapType.Flat);
-                    squadBonusMapList.Add(facilityAttractionFlat.SetWeight(0.6));
+                    squadBonusMapList.Add(facilityAttractionFlat.SetWeight(1));
                     //var facilityAttractionAdditive = GetFacilityAttractionMap(MapType.Additive);
                     //squadBonusMapList.Add(facilityAttractionAdditive.SetWeight(1));
                 }
@@ -175,7 +175,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private static Dictionary<Point, double> GeneratePossibleRays(Squad squad, BonusMap map)
         {
-            const int angleStep = 4;
+            const int angleStep = 6;
             double radius = squad.CruisingSpeed * squad.ExpectedTicksToNextUpdate * 1.2;
             radius = Math.Max(radius, 3 * MapCellWidth);
 
@@ -256,7 +256,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             var map = new BonusMap(maptype);
             foreach (var facility in facilities.Where(f => f.CapturePoints < Universe.Game.MaxFacilityCapturePoints))
             {
-                var weight = facility.Type == FacilityType.ControlCenter ? 1.05 : 1;
+                var weight = facility.Type == FacilityType.ControlCenter ? 1.00 : 1.00;
                 map.AddFacilityCalculation(facility, FacilitySize / 2, weight, 1000);
             }
 

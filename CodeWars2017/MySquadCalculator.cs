@@ -102,7 +102,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                     var factoryRange = new Range2(rangeX, rangeY);
                     Universe.Print($"Creating new squad on factory [{facility.Id}]");
                     ActionList.ActionSelectInRange(factoryRange);
-                    //ActionList.ActionSelectAll();
                     ActionList.ActionCreateNewSquadAlreadySelected(SquadList, SquadIdGenerator);
                 }
             }

@@ -320,8 +320,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public bool Execute(Universe universe)
         {
-            if (universe.World.TickIndex !=0)
-                universe.Crash("Executing without permission!");
+            //if (universe.World.TickIndex !=0)
+            //    universe.Crash("Executing without permission!");
             universe.Move.Action = ActionType.ClearAndSelect;
             universe.Move.Right = range.XMax;
             universe.Move.Left = range.XMin;

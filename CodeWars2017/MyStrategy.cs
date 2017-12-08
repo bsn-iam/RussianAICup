@@ -103,7 +103,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
             MyStrategyTimer.Stop();
 
             var duration = runTickTimer.ElapsedMilliseconds;
-            if (duration > 500)
+            if (duration > 300 || MyStrategyTimer.ElapsedMilliseconds > 18 * 20000)
                 Universe.Print($"---StepTime [{duration:f2}] ms, total - [{MyStrategyTimer.ElapsedMilliseconds}/{20 * 20000 + 1000}] ms");
         }
 
@@ -160,17 +160,20 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
         private void ReplaceUnitWithUpdate(World world, List<Vehicle> units)
         {
             foreach (var unit in units.ToList())
-                foreach (var update in world.VehicleUpdates)
-                    if (unit.Id == update.Id)
-                    {
-                           var newUnit = new Vehicle(unit, update);
-                        units.Remove(unit);
-                        if (update.Durability!=0) //Note: Dead or not visible units are removed from the list! 
-                            units.Add(newUnit);
+            {
+                var update = world.VehicleUpdates.FirstOrDefault(u => u.Id.Equals(unit.Id));
 
-                        // TODO if (UnitAliveButNotVisible) units.Add(newUnit);
-                        // TODO For dead units position is 0, for for the hidden ones?
-                    }
+                if (update == null)
+                    continue;
+
+                var newUnit = new Vehicle(unit, update);
+                units.Remove(unit);
+                if (update.Durability != 0) //Note: Dead or not visible units are removed from the list! 
+                    units.Add(newUnit);
+
+                // TODO if (UnitAliveButNotVisible) units.Add(newUnit);
+                // TODO For dead units position is 0, for for the hidden ones?
+            }
         }
     }
 
