@@ -109,7 +109,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 if (!squad.IsAerial)
                 {
                     var facilityAttractionFlat = GetFacilityAttractionMap(MapType.Flat);
-                    squadBonusMapList.Add(facilityAttractionFlat.SetWeight(1));
+                    squadBonusMapList.Add(facilityAttractionFlat.SetWeight(1.8 * squad.Units.FirstOrDefault().MaxSpeed));
                     //var facilityAttractionAdditive = GetFacilityAttractionMap(MapType.Additive);
                     //squadBonusMapList.Add(facilityAttractionAdditive.SetWeight(1));
                 }
@@ -117,16 +117,22 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
 
             squadBonusMapList.Add(StaticMap);
-            foreach (var map in squadBonusMapList)
-            {
-                map.SetRealValues();
-            }
+
+            SetRealTable(squadBonusMapList); //debug only
 
             var resultingMap = BonusMapSum(squadBonusMapList);
             squadBonusMapList.Add(resultingMap);
 
             BonusMapList.Add(squad.Id, squadBonusMapList);
             return resultingMap;
+        }
+
+        private static void SetRealTable(List<BonusMap> squadBonusMapList)
+        {
+#if DEBUG
+            foreach (var map in squadBonusMapList)
+                map.RealTable = (double[,])map.Table.Clone();
+#endif
         }
 
         private BonusMap BonusMapSum(List<BonusMap> squadBonusMapList)
@@ -137,7 +143,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 if (isInSurvivalMode && map.Weight > 0)
                     continue;
+
                 map.Trim();
+
+                if (map.IsEmpty)
+                    continue;
+
                 for (int i = 0; i < MapPointsAmount; i++)
                 for (int j = 0; j < MapPointsAmount; j++)
                     sumMap.Table[i, j] += map.Table[i, j] * map.Weight;
@@ -179,7 +190,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             double radius = squad.CruisingSpeed * squad.ExpectedTicksToNextUpdate * 1.2;
             radius = Math.Max(radius, 3 * MapCellWidth);
 
-            var squadCenterUnit = squad.Units.GetCentralUnit();
+            var squadCenterUnit = squad.CentralUnit;
             var squadCenter = new Point(squadCenterUnit.X, squadCenterUnit.Y);
             var possibleRays = new Dictionary<Point, double>();
 
@@ -335,17 +346,21 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 var totalWin = CalculateTotalWin(enemyUnit, myIsAerialSquad, myAeroDamage, myGroundDamage, myAeroDefence, myGroundDefence);
 
-                if (totalWin < squad.FairValue)
-                    squad.FairValue = totalWin;
+                //totalWin = totalWin * 1.1;
+
+                //if (totalWin < squad.FairValue)
+                //    squad.FairValue = totalWin;
+
+                var arrvRadius = enemyUnit.Type == VehicleType.Arrv ? 100 : 0;
 
                 var squadRadius = squad.Radius;
                 var firstRadius = myIsAerialSquad
-                    ? enemyUnit.AerialAttackRange * 1 + squadRadius
-                    : enemyUnit.GroundAttackRange * 1 + squadRadius;
+                    ? (enemyUnit.AerialAttackRange + arrvRadius) * 1 + squadRadius
+                    : (enemyUnit.GroundAttackRange + arrvRadius) * 1 + squadRadius;
 
                 var secondRadiusAdditive = myIsAerialSquad
-                    ? enemyUnit.AerialAttackRange * 5 + squadRadius
-                    : enemyUnit.GroundAttackRange * 5 + squadRadius;
+                    ? (enemyUnit.AerialAttackRange + arrvRadius) * 5 + squadRadius
+                    : (enemyUnit.GroundAttackRange + arrvRadius) * 5 + squadRadius;
                 var secondRadiusFlat = 1200;
 
                 //firstRadius = 0;
@@ -383,8 +398,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             var totalWin = myDamage / enemyDefence - enemyDamage / myDefence;
 
+            //if (enemyDamage.Equals(0) && !myDamage.Equals(0))
+            //{
+            //    totalWin = totalWin * 10;
+            //    MyStrategy.Universe.Print($"Increased win for {enemyUnit.Type}. My damage is {myDamage}");
+            //}
+
+            //if (enemyUnit.Type == VehicleType.Arrv)
+            //    MyStrategy.Universe.Print("win for arrv");
+
             if (Double.IsInfinity(totalWin) || Double.IsNaN(totalWin))
-                throw new Exception("Wrong calculated win number.");
+                MyStrategy.Universe.Crash("Wrong calculated win number.");
             return totalWin;
         }
 

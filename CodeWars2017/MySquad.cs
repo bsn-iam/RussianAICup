@@ -20,7 +20,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public bool IsEmpty { get; internal set; }
         public bool IsAbstract { get; }
 
-        public double StartDispersion { get; internal set; } = Double.MaxValue;
+        public double StartDispersionSquared { get; internal set; } = Double.MaxValue;
         //public double StartGroundEnergy { get; internal set; } = 0;
         //public double StartAirEnergy { get; internal set; } = 0;
 
@@ -31,6 +31,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public int PreviousCallTick { get; internal set; } = 0;
         public int LastCallTick { get; internal set; } = 0;
+
+        public double CruisingSpeed { get; internal set; }
+        public int LastScaleTick { get; internal set; }
+        public bool ScaleRotateFlag { get; internal set; }
+        public double DispersionSquared { get; internal set; }
+
 
         public int ExpectedTicksToNextUpdate
         {
@@ -74,7 +80,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public Squad(Queue<IMoveAction> actions, List<Squad> squadList, int id, Range2 range2)
         {
-            //range=position.GetRange(radius)
             Id = id;
             actions.ActionSelectInRange(range2);
             actions.ActionAssignSelectionToSquad(id);
@@ -126,7 +131,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         #region EnergyCalculations
 
-        public double Dispersion => Units.GetUnitsDispersionValue();
+        //public double DispersionSquared => Units.GetUnitsSquaredDispersionValue();
 
         public double AirDefence
         {
@@ -181,11 +186,10 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             }
         }
 
-        //public double AirEnergy => (AirForce + AirDefence) / Dispersion;
+        //public double AirEnergy => (AirForce + AirDefence) / DispersionSquared;
         //public double AirEnergyRelative => AirEnergy / StartAirEnergy;
         //public double GroundEnergyRelative => GroundEnergy / StartGroundEnergy;
-        public double DispersionRelative => Dispersion / StartDispersion;
-        //public double GroundEnergy => (GroundForce + GroundDefence) / Dispersion;
+        //public double GroundEnergy => (GroundForce + GroundDefence) / DispersionSquared;
 
         //public double Energy => GroundEnergy + AirEnergy;
 
@@ -272,7 +276,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             ScaleRotateFlag = !ScaleRotateFlag;
             LastScaleTick = MyStrategy.Universe.World.TickIndex;
-            UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
+            //UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
         internal void SetNukeMarkerCount(int ticksLeft)
@@ -292,41 +296,86 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public void UpdateState(Universe universe)
         {
             Units = universe.MyUnits.Where(u => u.Groups.Contains(Id)).ToList();
+            var firstUpdate = false;
 
             if (!IsCreated)
             {
                 IsCreated = Units.Any();
                 if (IsCreated)
-                {
-                    StartDispersion = Dispersion;
-                    //StartAirEnergy = AirEnergy;
-                    //StartGroundEnergy = GroundEnergy;
-                    ScalingTimeDelay = 0;
-                    IsWaitingForScaling = false;
-
-                    CalculateProperties();
-                }
+                    firstUpdate = true;
             }
 
             if (ScalingTimeDelay > 0 && !IsWaitingForScaling)
                 --ScalingTimeDelay;
 
             IsEmpty = !Units.Any();
-            CalculateProperties();
+
+            if (IsCreated)
+                CalculateProperties();
+
+            if (firstUpdate)
+            {
+                StartDispersionSquared = DispersionSquared;
+                ScalingTimeDelay = 0;
+                IsWaitingForScaling = false;
+            }
         }
 
         private void CalculateProperties()
         {
-            CentralUnit = Units.GetCentralUnit();
+            SquaredDispersionList = Units.GetUnitsSquaredDispersionList();
+            CentralUnit = GetSquadCentralUnit(); // order metters. Depends on the SquaredDispersionList
 
             if (CentralUnit == null) SquadCenter = new AbsolutePosition();
             else SquadCenter = new AbsolutePosition(CentralUnit.X, CentralUnit.Y);
 
             CruisingSpeed = CalculateCruisingSpeed();
+            DispersionSquared = GetUnitsSquaredDispersionValue(); // order metters. Depends on the SquaredDispersionList
+            DispersionRelative = DispersionSquared / StartDispersionSquared;
         }
 
+        public Dictionary<long, double> SquaredDispersionList { get; private set; }
         public Vehicle CentralUnit { get; private set; }
         public AbsolutePosition SquadCenter { get; private set; }
+
+        public Vehicle GetSquadCentralUnit()
+        {
+            if (!Units.Any())
+                return null;
+
+            if (Units.Count == 1)
+                return Units[0];
+
+            var dispersionPerUnit = SquaredDispersionList;
+
+            //get the ID of less distant.
+            var minSquaredDistance = Double.MaxValue;
+            long centerUnitId = 0;
+            foreach (var pair in dispersionPerUnit)
+            {
+                if (pair.Value > 0.01 && pair.Value < minSquaredDistance)
+                {
+                    minSquaredDistance = pair.Value;
+                    centerUnitId = pair.Key;
+                }
+            }
+
+            //return position of less distant unit
+            var centerUnit = Units.First(u => u.Id.Equals(centerUnitId));
+            return centerUnit;
+        }
+
+        public double GetUnitsSquaredDispersionValue()
+        {
+            if (!Units.Any())
+                return Double.MaxValue;
+            var dispersionPerUnit = SquaredDispersionList;
+            double dispersionSum = 0;
+
+            foreach (var dispersion in dispersionPerUnit)
+                dispersionSum += dispersion.Value;
+            return dispersionSum / Units.Count;
+        }
 
         public double CalculateCruisingSpeed()
         {
@@ -356,29 +405,32 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 if (!Units.Any())
                     return true;
-                var totalCount = Units.Count;
-                var aerialCount = Units.Count(u => u.IsAerial);
-                var groundCount = totalCount - aerialCount;
 
-                return aerialCount > groundCount;
+                return Units.FirstOrDefault().IsAerial;
+                //var totalCount = Units.Count;
+                //var aerialCount = Units.Count(u => u.IsAerial);
+                //var groundCount = totalCount - aerialCount;
+                //
+                //return aerialCount > groundCount;
             }
         }
+
+        public double DispersionRelative { get; private set; }
 
         public bool OfType(VehicleType type)
         {
             if (!Units.Any())
-                return true;
-            var totalCount = Units.Count;
-            var requestedCount = Units.Count(u => u.Type == type);
-            var othersCount = totalCount - requestedCount;
-
-            return requestedCount > othersCount;
+                return false;
+            return Units.FirstOrDefault().Type == type;
+            //var totalCount = Units.Count;
+            //var requestedCount = Units.Count(u => u.Type == type);
+            //var othersCount = totalCount - requestedCount;
+            //
+            //return requestedCount > othersCount;
         }
 
-        public double FairValue { get; internal set; } = 0;
-        public double CruisingSpeed { get; internal set; }
-        public int LastScaleTick { get; internal set; }
-        public bool ScaleRotateFlag { get; internal set; }
+        //public double FairValue { get; internal set; } = 0;
+
 
         internal double GetNukeDamage(AbsolutePosition targetPoint, double range)
         {
@@ -400,13 +452,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         public void Enable() => IsEnabled = true;
 
-
         public void Disable() => IsEnabled = false;
 
         public override string ToString()
         {
             return $"Squad [{(Squads) Id}], IsEnabled [{IsEnabled}], Amount [{Units.Count}], " +
-                   $"Dispersion [{Dispersion:f2}, {DispersionRelative:f2}], ";
+                   $"DispersionSquared [{DispersionSquared:f2}, {DispersionRelative:f2}], ";
         }
 
     }

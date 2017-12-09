@@ -142,6 +142,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public MapType MapType { get; }
         public bool IsPositive { get;  set; }
         public double Weight { get;  set; }
+        public bool IsEmpty { get; internal set; }
 
         public BonusMap(MapType mapType)
         {
@@ -152,10 +153,6 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
         }
 
-        public void SetRealValues()
-        {
-            RealTable = Table;
-        }
 
         public void Reflect()
         {
@@ -184,6 +181,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (Math.Abs(minValue - maxValue) < Double.Epsilon)
             {
                 MyStrategy.Universe.Print("Map is empty");
+                IsEmpty = true;
                 return this;
             }
 

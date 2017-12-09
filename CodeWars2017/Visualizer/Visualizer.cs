@@ -187,7 +187,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk.Visualizer
             var lookAtSquadId = MyStrategy.SquadCalculator.SquadList.FirstOrDefault(s => s.Id.ToString() == _form.lookAtTextBox.Text.Trim());
             if (lookAtSquadId != null)
             {
-                var centralUnit = lookAtSquadId.Units.GetCentralUnit();
+                var centralUnit = lookAtSquadId.CentralUnit;
                 if (centralUnit != null)
                     LookAt(new Point(centralUnit));
             }

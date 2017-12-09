@@ -132,23 +132,23 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return position == null ? new AbsolutePosition(0, 0) : new AbsolutePosition(position.X, position.Y);
         }
 
-        public static AbsolutePosition GetPositionOfNearestTarget(this List<Vehicle> units, List<Vehicle> targetUnits)
-        {
-            var minDistance = Double.MaxValue;
-            var position = units.GetUnitsCenter();
-
-            foreach (var unit in units)
-                foreach (var target in targetUnits)
-                {
-                    var distance = GetDistanceBetweenUnits(unit, target);
-                    if (distance < minDistance)
-                    {
-                        minDistance = distance;
-                        position = new AbsolutePosition(target.X, target.Y);
-                    }
-                }
-            return position;
-        }
+        //public static AbsolutePosition GetPositionOfNearestTarget(this List<Vehicle> units, List<Vehicle> targetUnits)
+        //{
+        //    var minDistance = Double.MaxValue;
+        //    var position = units.GetUnitsCenter();
+        //
+        //    foreach (var unit in units)
+        //        foreach (var target in targetUnits)
+        //        {
+        //            var distance = GetDistanceBetweenUnits(unit, target);
+        //            if (distance < minDistance)
+        //            {
+        //                minDistance = distance;
+        //                position = new AbsolutePosition(target.X, target.Y);
+        //            }
+        //        }
+        //    return position;
+        //}
 
 
         #endregion
@@ -225,14 +225,14 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         #region VehicleListExtension
 
-        public static List<Vehicle> GetClosestUnits(this List<Vehicle> initialList, double persentageToRemove)
-        {
-            List<Vehicle> shrinkedUnits = new List<Vehicle>(initialList);
-            while (shrinkedUnits.Count > initialList.Count * (1 - persentageToRemove / 100))
-                shrinkedUnits.Remove(shrinkedUnits.GetMostDistantUnit());
-
-            return shrinkedUnits;
-        }
+        //public static List<Vehicle> GetClosestUnits(this List<Vehicle> initialList, double persentageToRemove)
+        //{
+        //    List<Vehicle> shrinkedUnits = new List<Vehicle>(initialList);
+        //    while (shrinkedUnits.Count > initialList.Count * (1 - persentageToRemove / 100))
+        //        shrinkedUnits.Remove(shrinkedUnits.GetMostDistantUnit());
+        //
+        //    return shrinkedUnits;
+        //}
 
         public static List<Vehicle> GetCombinedList(this List<Vehicle> units1, List<Vehicle> units2)
         {
@@ -243,17 +243,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return combinedList;
         }
 
-        public static double GetUnitsDispersionValue(this List<Vehicle> units)
-        {
-            if (!units.Any())
-                return Double.MaxValue;
-            var dispersionPerUnit = units.GetUnitsDispersionList();
-            double dispersionSum = 0;
-
-            foreach (var dispersion in dispersionPerUnit)
-                dispersionSum += dispersion.Value;
-            return dispersionSum / units.Count;
-        }
+        //public static double GetUnitsDispersionValue(this List<Vehicle> units)
+        //{
+        //    if (!units.Any())
+        //        return Double.MaxValue;
+        //    var dispersionPerUnit = units.GetUnitsDispersionList();
+        //    double dispersionSum = 0;
+        //
+        //    foreach (var dispersion in dispersionPerUnit)
+        //        dispersionSum += dispersion.Value;
+        //    return dispersionSum / units.Count;
+        //}
 
         public static Vehicle GetMostDistantUnit(this List<Vehicle> candidateList)
         {
@@ -316,28 +316,28 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             return dispersionPerUnit;
         }
-        public static Dictionary<long, double> GetUnitsDispersionList(this List<Vehicle> units)
-        {
-            Dictionary<long, double> dispersionPerUnit = new Dictionary<long, double>();
-            if (units.Count == 1)
-            {
-                dispersionPerUnit.Add(units[0].Id, 1);
-                return dispersionPerUnit;
-            }
-
-            //get sum of distance to friends
-            foreach (var u1 in units)
-            {
-                double u1Distance = 0;
-                foreach (var u2 in units)
-                    u1Distance += GetDistanceBetweenUnits(u1, u2);
-                if (!dispersionPerUnit.ContainsKey(u1.Id))
-                    dispersionPerUnit.Add(u1.Id, u1Distance / units.Count);
-            }
-            //greater value - more distant unit
-
-            return dispersionPerUnit;
-        }
+        //public static Dictionary<long, double> GetUnitsDispersionList(this List<Vehicle> units)
+        //{
+        //    Dictionary<long, double> dispersionPerUnit = new Dictionary<long, double>();
+        //    if (units.Count == 1)
+        //    {
+        //        dispersionPerUnit.Add(units[0].Id, 1);
+        //        return dispersionPerUnit;
+        //    }
+        //
+        //    //get sum of distance to friends
+        //    foreach (var u1 in units)
+        //    {
+        //        double u1Distance = 0;
+        //        foreach (var u2 in units)
+        //            u1Distance += GetDistanceBetweenUnits(u1, u2);
+        //        if (!dispersionPerUnit.ContainsKey(u1.Id))
+        //            dispersionPerUnit.Add(u1.Id, u1Distance / units.Count);
+        //    }
+        //    //greater value - more distant unit
+        //
+        //    return dispersionPerUnit;
+        //}
 
         #endregion
 
@@ -402,7 +402,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             actions.ActionSelectSquad(squad.Id);
             actions.Enqueue(new ActionScaleSelectedSquadToPosition(squad, factor, position, duration));
             squad.IsWaitingForScaling = true;
-            //squad.UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
+            squad.UpdateLastCallTime(MyStrategy.Universe.World.TickIndex);
         }
 
         //public static void ActionMoveAndCombine(this Queue<IMoveAction> actions, List<Squad> squadList, int squadAlfaId, int squadDeltaId,

@@ -160,13 +160,12 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk {
         private void ReplaceUnitWithUpdate(World world, List<Vehicle> units)
         {
             foreach (var update in world.VehicleUpdates)
-            {
-                var unit = units.FirstOrDefault(u => u.Id.Equals(update.Id));
-
-                if (unit == null)
-                    continue;
-                ReplaceWithUpdate(units, unit, update);
-            }
+                foreach (var unit in units)
+                    if (unit.Id == update.Id)
+                    {
+                        ReplaceWithUpdate(units, unit, update);
+                        break;
+                    }
         }
 
         private static void ReplaceWithUpdate(List<Vehicle> units, Vehicle unit, VehicleUpdate update)

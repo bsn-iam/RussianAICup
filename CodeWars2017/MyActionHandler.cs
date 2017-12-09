@@ -77,11 +77,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             return executed;
         }
 
-        public static bool CanMove(Player me, Queue<IMoveAction> actions)
-        {
-            return me.RemainingActionCooldownTicks == 0 && actions.Any();
-            //return HasActionsFree() && actions.Any();
-        }
+        public static bool CanMove(Player me, Queue<IMoveAction> actions) => 
+            me.RemainingActionCooldownTicks == 0 && actions.Any();
 
         public static bool HasActionsFree() => lastMinuteTickActions.Count < MyStrategy.MaxActionBalance;
     }

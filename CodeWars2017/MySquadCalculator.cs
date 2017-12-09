@@ -19,6 +19,8 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         private const double MaxDispersionRelative = 0.85;
         private IdGenerator SquadIdGenerator;
         private BonusMapCalculator BonusCalculator;
+        private Dictionary<Facility, IEnumerable<Vehicle>> FreeUnitsOnFacilities = new Dictionary<Facility, IEnumerable<Vehicle>>();
+        private const int MaxUnitsForNewSquad = 44;
 
         internal void RunTick(Universe universe)
         {
@@ -36,14 +38,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             #endregion
 
+            ShowSquadList();
+
             if (universe.World.TickIndex == 0)
                 StartActionList(Universe);
 
             if (universe.World.TickIndex == 100)
                 ReduceScaleForAll();
 
-            ShowSquadList();
 
+
+            //--------------Immediate Actions------------
             if (Universe.World.GetOpponentPlayer().NextNuclearStrikeTickIndex > 0)
                 universe.Print("Nuclear launch detected!");
 
@@ -53,13 +58,17 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
             if (CanMoveImmediateAction(universe))
                 CheckForNuclearStrike(universe);
+            //------------Immediate Actions-------------
 
-            //CheckDeferredActionList();
+            //------------Common actions-----------------
 
             if (CanMoveCommonAction())
                 CheckForScoutsAmount();
 
-            if (CanMoveCommonAction())
+            if (CanMoveCommonAction() && SquadIdGenerator.HasCapacity)
+                CalculateFreeUnitsOnFacilities();
+
+            if (CanMoveCommonAction() && SquadIdGenerator.HasCapacity)
                 CheckForNewUnits();
 
             if (CanMoveCommonAction())
@@ -74,6 +83,23 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                 GenerateSquadCommands();
             }
 
+            //------------Common actions-----------------
+
+        }
+
+        private void CalculateFreeUnitsOnFacilities()
+        {
+            FreeUnitsOnFacilities = new Dictionary<Facility, IEnumerable<Vehicle>>();
+
+            foreach (var facility in Universe.World.Facilities.Where(f => f.OwnerPlayerId == Universe.Player.Id))
+            {
+                var rangeX = new Range(facility.Left, facility.Left + Universe.Game.FacilityWidth);
+                var rangeY = new Range(facility.Top, facility.Top + Universe.Game.FacilityHeight);
+
+                var unitsOnFactory =
+                    Universe.MyUnits.Where(u => u.X.IsInRange(rangeX) && u.Y.IsInRange(rangeY) && !u.Groups.Any());
+                FreeUnitsOnFacilities.Add(facility, unitsOnFactory);
+            }
         }
 
         private void CheckForDispersedSquads()
@@ -89,39 +115,110 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
 
         private void CheckForNewUnits()
         {
-            const int maxUnitsForNewSquad = 44;
-            foreach (var facility in Universe.World.Facilities)
+            foreach (var facilityUnit in FreeUnitsOnFacilities)
             {
-                var rangeX = new Range(facility.Left, facility.Left + Universe.Game.FacilityWidth);
-                var rangeY = new Range(facility.Top, facility.Top + Universe.Game.FacilityHeight);
+                var unitsOnFactoryCount = facilityUnit.Value.Count();
+                var facility = facilityUnit.Key;
 
-                var unitsOnFactory = Universe.MyUnits.Where(u => u.X.IsInRange(rangeX) && u.Y.IsInRange(rangeY) && !u.Groups.Any());
+                var timeToCreateSquad = SquadIdGenerator.HasCapacity && 
+                        (unitsOnFactoryCount >= MaxUnitsForNewSquad ||
+                         (facility.CapturePoints < 10 && unitsOnFactoryCount > 10) ||
+                         (facility.VehicleType == null && unitsOnFactoryCount > 10));
 
-                if (unitsOnFactory.Count() >= maxUnitsForNewSquad && SquadIdGenerator.HasCapacity)
+                if (timeToCreateSquad)
                 {
-                    var factoryRange = new Range2(rangeX, rangeY);
+                    var factoryRange = GetFacilityRange(facility);
                     Universe.Print($"Creating new squad on factory [{facility.Id}]");
                     ActionList.ActionSelectInRange(factoryRange);
                     ActionList.ActionCreateNewSquadAlreadySelected(SquadList, SquadIdGenerator);
+                    return; // Once created
                 }
             }
+
+        }
+
+        private Range2 GetFacilityRange(Facility facility)
+        {
+            var rangeX = new Range(facility.Left, facility.Left + Universe.Game.FacilityWidth);
+            var rangeY = new Range(facility.Top, facility.Top + Universe.Game.FacilityHeight);
+            var factoryRange = new Range2(rangeX, rangeY);
+            return factoryRange;
         }
 
         private void CheckForFacilityProduction()
         {
-            var productionFacilities = Universe.World.Facilities.Where(f => 
+            var myProductionFacilities = Universe.World.Facilities.Where(f => 
                 f.Type == FacilityType.VehicleFactory && 
-                f.VehicleType == null &&
-                f.CapturePoints.Equals(Universe.Game.MaxFacilityCapturePoints)).ToList();
+                f.OwnerPlayerId == Universe.Player.Id).ToList();
 
-            var newUnitsRequired = (double)Universe.MyUnits.Count / Universe.OppUnits.Count < 1.2; 
-
-            if (!productionFacilities.Any() || !newUnitsRequired)
+            if (!myProductionFacilities.Any())
                 return;
 
-            var facility = productionFacilities.FirstOrDefault();
+            var newUnitsRequired = CalculateNewUnitsNeсessity();
 
-            ActionList.ActionProductionStart(facility, VehicleType.Helicopter);
+            if (newUnitsRequired)
+                UpdateProductionOnFacility(myProductionFacilities);
+            else
+                StopPoductionOnFirstFacility(myProductionFacilities);
+        }
+
+        private bool CalculateNewUnitsNeсessity()
+        {
+            var newUnitsRequired = (double) Universe.MyUnits.Count(u => u.Type != VehicleType.Arrv) /
+                                   Universe.OppUnits.Count(u => u.Type != VehicleType.Arrv) < 4;
+            return newUnitsRequired;
+        }
+
+        private void UpdateProductionOnFacility(List<Facility> myProductionFacilities)
+        {
+            Facility chosenFacility = null;
+            VehicleType chosenType = VehicleType.Ifv;
+
+            foreach (var facility in myProductionFacilities)
+            {
+                var freeUnitsOnFacility = FreeUnitsOnFacilities[facility].Count();
+                var isWaitingForOrder = freeUnitsOnFacility == 0 || freeUnitsOnFacility > MaxUnitsForNewSquad;
+                if (isWaitingForOrder)
+                {
+                    var requiredType = GetRequiredUnitsType();
+                    if (requiredType != facility.VehicleType)
+                    {
+                        chosenFacility = facility;
+                        chosenType = requiredType;
+                        break;
+                    }
+                }
+
+            }
+
+            if (chosenFacility == null)
+                return;
+            
+            ActionList.ActionProductionStart(chosenFacility, chosenType);
+        }
+
+        private VehicleType GetRequiredUnitsType()
+        {
+            var superiority = new int [5];
+
+            foreach (var oppUnit in Universe.OppUnits)
+                superiority[(int)oppUnit.Type]--;
+
+            foreach (var myUnit in Universe.MyUnits)
+                superiority[(int)myUnit.Type]++;
+
+            var minValue = superiority.Min();
+            var requredType = Array.LastIndexOf(superiority, minValue);
+
+            return (VehicleType)requredType;
+        }
+
+        private void StopPoductionOnFirstFacility(List<Facility> productionFacilities)
+        {
+            var facility = productionFacilities.FirstOrDefault(f => f.VehicleType != null);
+            if (facility == null)
+                return;
+            ActionList.ActionProductionStop(facility);
         }
 
         private bool CanMoveImmediateAction(Universe universe)
@@ -253,7 +350,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
              foreach (var squad in SquadList.GetIteratorSquadListActive())
              {
-                 var dispersionCondition = squad.DispersionRelative > MaxDispersionRelative || squad.Dispersion > 25;
+                 var dispersionCondition = squad.DispersionRelative > MaxDispersionRelative;
                  if (dispersionCondition && !squad.IsWaitingForScaling)
                      ActionList.ActionScaleSquadToPosition(squad, 0.1, squad.SquadCenter, 60);
              }
@@ -264,7 +361,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             foreach (var friendSquad in new List<Squad>(SquadList.Where(s => !s.Id.Equals(squad.Id))))
             {
                 var squadJoin = new Squad(squad, friendSquad);
-                if (squadJoin.Dispersion < squad.Dispersion && SquadIdGenerator.HasCapacity)
+                if (squadJoin.DispersionSquared < squad.DispersionSquared && SquadIdGenerator.HasCapacity)
                 {
                     Universe.Print($"We can join! Squads Id {squad.Id} and {friendSquad.Id}");
                     ActionList.ActionCombineSquads(SquadList, SquadList.GetSquadById(squad.Id),

@@ -117,8 +117,35 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         public static void ActionProductionStart(this Queue<IMoveAction> moveActions, Facility facility, VehicleType type) =>
             moveActions.Enqueue(new ActionProductionStart(facility, type));
 
+        public static void ActionProductionStop(this Queue<IMoveAction> moveActions, Facility facility) =>
+            moveActions.Enqueue(new ActionProductionStop(facility));
+
 
         #endregion
+    }
+
+    internal class ActionProductionStop : IMoveAction
+    {
+        private readonly Facility facility;
+
+        public ActionProductionStop(Facility facility)
+        {
+            this.facility = facility;
+        }
+
+        public bool Execute(Universe universe)
+        {
+            if (facility.OwnerPlayerId != universe.Player.Id)
+            {
+                universe.Print($"Facility [{facility.Id}] is reoccupied.");
+                return false;
+            }
+
+            universe.Move.Action = ActionType.SetupVehicleProduction;
+            universe.Move.VehicleType = null;
+            universe.Move.FacilityId = facility.Id;
+            return true;
+        }
     }
 
     internal class ActionProductionStart : IMoveAction
@@ -143,6 +170,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             universe.Move.Action = ActionType.SetupVehicleProduction;
             universe.Move.VehicleType = type;
             universe.Move.FacilityId = facility.Id;
+            universe.Print($"Facility [{facility.Id}] started with [{type}].");
             return true;
         }
     }
