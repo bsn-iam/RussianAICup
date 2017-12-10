@@ -251,7 +251,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
                             affectedSquadsList.Add(squad);
 
                 var chosenSquad = affectedSquadsList.Distinct().ToList().FirstOrDefault();
-                chosenSquad?.DoScaleJerk(ImmediateActionList, DeferredActionList,  3, nukeCenter, duration, Universe.World.TickIndex + duration);
+                chosenSquad?.DoScaleJerk(ImmediateActionList, DeferredActionList, 10, nukeCenter, duration, Universe.World.TickIndex + duration);
             }
 
         }

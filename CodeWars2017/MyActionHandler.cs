@@ -17,6 +17,9 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
         {
             Universe = universe;
 
+            if (immediateActionList.Any())
+                commonActionList.Clear();
+
             //run actions
             var somethingStarted = RunAction(universe, immediateActionList);
 

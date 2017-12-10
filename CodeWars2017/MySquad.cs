@@ -217,6 +217,7 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             {
                 actions.ActionSelectSquad(Id);
                 actions.ActionMoveSelectionToPosition(position, speed);
+                MyStrategy.Universe.Print($"Squad {(Squads)Id}  - move requiested.");
             }
             else
             {
