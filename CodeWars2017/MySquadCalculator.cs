@@ -154,12 +154,18 @@ namespace Com.CodeGame.CodeWars2017.DevKit.CSharpCgdk
             if (!myProductionFacilities.Any())
                 return;
 
-            var newUnitsRequired = CalculateNewUnitsNeсessity();
-
-            if (newUnitsRequired)
-                UpdateProductionOnFacility(myProductionFacilities);
+            if (!Universe.Game.IsFogOfWarEnabled)
+            {
+                var newUnitsRequired = CalculateNewUnitsNeсessity();
+                if (newUnitsRequired)
+                    UpdateProductionOnFacility(myProductionFacilities);
+                else
+                    StopPoductionOnFirstFacility(myProductionFacilities);
+            }
             else
-                StopPoductionOnFirstFacility(myProductionFacilities);
+            {
+                UpdateProductionOnFacility(myProductionFacilities);
+            }
         }
 
         private bool CalculateNewUnitsNeсessity()
